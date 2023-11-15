@@ -19,18 +19,30 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Run vcpkg
+      uses: lukka/run-vcpkg@v7
+      with:
+        vcpkgArguments: 'catch2'
+        vcpkgDirectory: '${{github.workspace}}/vcpkg'
+
     - name: Configure CMake (Linux)
-      run: cmake -B ${{github.workspace}}/build
+      run: |
+        cmake -S ${{github.workspace}} -B build \
+        -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'ubuntu-latest'
 
     - name: Configure CMake (Windows)
-      run: cmake -B ${{github.workspace}}/build
+      run: |
+        cmake -S ${{github.workspace}} -B build \
+        -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'windows-latest'
 
     - name: Configure CMake (macOS)
       run: |
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
-        cmake -B ${{github.workspace}}/build
+        run: |
+          cmake -S ${{github.workspace}} -B build \
+          -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'macos-latest'
 
     - name: Build
