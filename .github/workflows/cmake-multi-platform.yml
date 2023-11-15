@@ -6,38 +6,46 @@ on:
   pull_request:
     branches: [ "main" ]
 
-  # Allows running this workflow manually from the Actions tab
+  # allows running this workflow manually from the Actions tab
   workflow_dispatch:
+
+# enable the job to write the dependency metadata
+permissions:
+  contents: write
+
+# enable the vcpkg dependency graph integration
+env:
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  VCPKG_FEATURE_FLAGS: dependencygraph
 
 jobs:
   build:
     strategy:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{matrix.os}}
 
     steps:
     - uses: actions/checkout@v3
-
-    - name: Run vcpkg
-      uses: lukka/run-vcpkg@v4
       with:
-        vcpkgArguments: 'catch2'
-        vcpkgDirectory: '${{github.workspace}}/vcpkg'
+        submodules: 'recursive'
 
-    - name: Configure CMake (Linux)
+    - name: Bootstrap vcpkg
+      run: ${{github.workspace}}/vcpkg/bootstrap-vcpkg.sh
+
+    - name: Configure with CMake (Linux)
       run: |
         cmake -S ${{github.workspace}} -B build \
         -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'ubuntu-latest'
 
-    - name: Configure CMake (Windows)
+    - name: Configure with CMake (Windows)
       run: |
         cmake -S ${{github.workspace}} -B build \
         -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'windows-latest'
 
-    - name: Configure CMake (macOS)
+    - name: Configure with CMake (macOS)
       run: |
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
         run: |
@@ -46,7 +54,7 @@ jobs:
       if: matrix.os == 'macos-latest'
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build -j
+      run: cmake --build build
 
     - name: Test
       working-directory: ${{github.workspace}}/build
