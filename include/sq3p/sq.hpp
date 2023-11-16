@@ -27,6 +27,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <any>
+#include <initializer_list>
 
 namespace sq3p {
 
@@ -36,17 +37,51 @@ class seq
     std::unordered_map<std::string, std::any> _td;  // tagged data
 
 public:
-    seq() {}
-    seq(std::string sq)
-    {   _sq.resize(std::size(sq));
-        std::copy(std::begin(sq), std::end(sq), std::begin(_sq));
-    }
+    typedef typename Container::value_type value_type;
+    typedef typename Container::size_type size_type;
+    typedef typename Container::difference_type difference_type;
+    typedef typename Container::reference reference;
+    typedef typename Container::const_reference const_reference;
+    typedef typename Container::iterator iterator;
+    typedef typename Container::const_iterator const_iterator;
+    typedef typename Container::reverse_iterator reverse_iterator;
+    typedef typename Container::const_reverse_iterator const_reverse_iterator;
+
+    // constructors
+    seq() noexcept
+    :   _sq()
+    ,   _td()
+    {}
+    explicit seq(std::string sq)
+    :   _sq(std::begin(sq), std::end(sq))
+    ,   _td()
+    {}
+    seq(size_type count, const_reference value = value_type(65))
+    :   _sq(count, value)
+    ,   _td()
+    {}
+    template<typename InputIt>
+    seq(InputIt first, InputIt last)
+    :   _sq(first, last)
+    ,   _td()
+    {}
+    seq(const seq& other)
+    :   _sq(other._sq)
+    ,   _td(other._td)
+    {}
+    seq(seq&& other)
+    :   _sq(std::move(other._sq))
+    ,   _td(std::move(other._td))
+    {}
+    seq(std::initializer_list<value_type> init)
+    :   _sq(init)
+    ,   _td()
+    {}
 
     std::any& operator[] (std::string tag)
     {   return _td[tag];   }
 
-    typename Container::value_type& operator[]
-    (   typename Container::size_type pos   )
+    value_type& operator[] (size_type pos)
     {   return _sq[pos];   }
 };
 

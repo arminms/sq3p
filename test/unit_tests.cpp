@@ -5,15 +5,59 @@
 
 TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
-
     sq3p::seq<T> s{"ACGT"};
+    s["test"] = 33;
+
+    // constructors
+    SECTION( "single value constructor" )
+    {   sq3p::seq<T> a4(4);
+        CHECK('A' == a4[0]);
+        CHECK('A' == a4[1]);
+        CHECK('A' == a4[2]);
+        CHECK('A' == a4[3]);
+        sq3p::seq<T> c4(4, 'C');
+        CHECK('C' == c4[0]);
+        CHECK('C' == c4[1]);
+        CHECK('C' == c4[2]);
+        CHECK('C' == c4[3]);
+    }
+    SECTION( "iterator constructor" )
+    {   std::string acgt{"ACGT"};
+        sq3p::seq<T> c(std::begin(acgt), std::end(acgt));
+        CHECK('A' == c[0]);
+        CHECK('C' == c[1]);
+        CHECK('G' == c[2]);
+        CHECK('T' == c[3]);
+    }
+    SECTION( "copy constructor" )
+    {   sq3p::seq<T> c(s);
+        CHECK('A' == c[0]);
+        CHECK('C' == c[1]);
+        CHECK('G' == c[2]);
+        CHECK('T' == c[3]);
+        CHECK(33 == std::any_cast<int>(c["test"]));
+    }
+    SECTION( "move constructor" )
+    {   sq3p::seq<T> m(std::move(s));
+        CHECK('A' == m[0]);
+        CHECK('C' == m[1]);
+        CHECK('G' == m[2]);
+        CHECK('T' == m[3]);
+        CHECK(33 == std::any_cast<int>(m["test"]));
+    }
+    SECTION( "initializer list" )
+    {   sq3p::seq<T> c{'A', 'C', 'G', 'T'};
+        CHECK('A' == c[0]);
+        CHECK('C' == c[1]);
+        CHECK('G' == c[2]);
+        CHECK('T' == c[3]);
+    }
 
     SECTION( "subscript/array index operator" )
     {   CHECK('A' == s[0]);
         CHECK('C' == s[1]);
         CHECK('G' == s[2]);
         CHECK('T' == s[3]);
-
         s[3] = 'U';
         CHECK('U' == s[3]);
     }
