@@ -9,15 +9,6 @@ on:
   # allows running this workflow manually from the Actions tab
   workflow_dispatch:
 
-# enable the job to write the dependency metadata
-permissions:
-  contents: write
-
-# enable the vcpkg dependency graph integration
-env:
-  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-  VCPKG_FEATURE_FLAGS: dependencygraph
-
 jobs:
   build:
     strategy:
@@ -27,21 +18,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      with:
-        submodules: 'recursive'
 
-    - name: Bootstrap vcpkg
-      run: ${{github.workspace}}/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+    - uses: actions/github-script@v6
+      with:
+        script: |
+          core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+          core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+    - name: Install dependencies via vcpkg
+      run: vcpkg install catch2 --binarysource="clear;x-gha,readwrite"
 
     - name: Configure with CMake (Linux)
       run: |
         cmake -S ${{github.workspace}} -B build \
-        -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
+        -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'ubuntu-latest'
 
     - name: Configure with CMake (Windows)
       run: |
-        cmake -S ${{github.workspace}} -B build -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
+        cmake -S ${{github.workspace}} -B build -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'windows-latest'
 
     - name: Configure with CMake (macOS)
@@ -49,7 +44,7 @@ jobs:
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
         run: |
           cmake -S ${{github.workspace}} -B build \
-          -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/vcpkg/scripts/buildsystems/vcpkg.cmake
+          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'macos-latest'
 
     - name: Build
