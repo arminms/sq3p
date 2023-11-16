@@ -31,12 +31,12 @@ jobs:
     - name: Configure with CMake (Linux)
       run: |
         cmake -S ${{github.workspace}} -B build \
-        -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake
+        -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'ubuntu-latest'
 
     - name: Configure with CMake (Windows)
       run: |
-        cmake -S ${{github.workspace}} -B build -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake
+        cmake -S ${{github.workspace}} -B build -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'windows-latest'
 
     - name: Configure with CMake (macOS)
@@ -44,7 +44,7 @@ jobs:
         export OpenMP_ROOT=$(brew --prefix)/opt/libomp
         run: |
           cmake -S ${{github.workspace}} -B build \
-          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake
+          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
       if: matrix.os == 'macos-latest'
 
     - name: Build
