@@ -78,6 +78,22 @@ public:
     ,   _td()
     {}
 
+    // copy assignment operators
+    seq& operator= (const seq& other)
+    {   _sq = other._sq;
+        _td = other._td;
+        return *this;
+    }
+    seq& operator= (seq&& other)
+    {   _sq = std::move(other._sq);
+        _td = std::move(other._td);
+        return *this;
+    }
+    seq& operator= (std::initializer_list<value_type> init)
+    {   _sq = init;
+        return *this;
+    }
+
     bool empty() const noexcept
     {   return (_sq.empty() && _td.empty());   }
 

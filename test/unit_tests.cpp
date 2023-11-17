@@ -2,6 +2,7 @@
 
 #include <catch2/catch_all.hpp>
 #include <sq3p/sq.hpp>
+// #include <sq3p/io/fastaq.hpp>
 
 TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
@@ -13,6 +14,7 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(!(s == sq3p::seq<T>("acgt")));
         CHECK(  s != sq3p::seq<T>("acgt") );
         CHECK(!(s != sq3p::seq<T>("ACGT")));
+
     }
 
     // constructors
@@ -40,6 +42,21 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     }
     SECTION( "initializer list" )
     {   sq3p::seq<T> c{'A', 'C', 'G', 'T'};
+        CHECK(c == s);
+    }
+
+    // copy assignment operators
+    SECTION( "copy assignment operator" )
+    {   sq3p::seq<T> c = s;
+        CHECK(c == s);
+        CHECK(33 == std::any_cast<int>(c["test"]));
+    }
+    SECTION( "move constructor" )
+    {   sq3p::seq<T> m = sq3p::seq<T>("ACGT");
+        CHECK(m == s);
+    }
+    SECTION( "initializer list" )
+    {   sq3p::seq<T> c = {'A', 'C', 'G', 'T'};
         CHECK(c == s);
     }
 
