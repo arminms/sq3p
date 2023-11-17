@@ -84,6 +84,9 @@ public:
     value_type& operator[] (size_type pos)
     {   return _sq[pos];   }
 
+    bool has(std::string tag) const
+    {   return _td.find(tag) == _td.end() ? false : true;  }
+
     template<typename Container1, typename Container2>
     friend bool operator==
     (   const seq<Container1>& lhs
