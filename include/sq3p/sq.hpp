@@ -78,17 +78,23 @@ public:
     ,   _td()
     {}
 
+    // managing tagged data
+    bool has(std::string tag) const
+    {   return _td.find(tag) == _td.end() ? false : true;  }
     std::any& operator[] (std::string tag)
     {   return _td[tag];   }
 
     value_type& operator[] (size_type pos)
     {   return _sq[pos];   }
 
-    bool has(std::string tag) const
-    {   return _td.find(tag) == _td.end() ? false : true;  }
-
+    // comparison operators
     template<typename Container1, typename Container2>
     friend bool operator==
+    (   const seq<Container1>& lhs
+    ,   const seq<Container2>& rhs
+    );
+    template<typename Container1, typename Container2>
+    friend bool operator!=
     (   const seq<Container1>& lhs
     ,   const seq<Container2>& rhs
     );
@@ -97,6 +103,10 @@ public:
     template<typename Container1, typename Container2>
     bool operator== (const seq<Container1>& lhs, const seq<Container2>& rhs)
     {   return lhs._sq == rhs._sq;   }
+
+    template<typename Container1, typename Container2>
+    bool operator!= (const seq<Container1>& lhs, const seq<Container2>& rhs)
+    {   return lhs._sq != rhs._sq;   }
 
 }   // end sq3p namespace
 

@@ -8,9 +8,11 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     sq3p::seq<T> s{"ACGT"};
     s["test"] = 33;
 
-    SECTION( "comparison operator" )
+    SECTION( "comparison operators" )
     {   CHECK(sq3p::seq<T>("ACGT") == s);
         CHECK(!(sq3p::seq<T>("acgt") == s));
+        CHECK(sq3p::seq<T>("acgt") != s);
+        CHECK(!(sq3p::seq<T>("ACGT") != s));
     }
 
     // constructors
