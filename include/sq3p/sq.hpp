@@ -78,6 +78,9 @@ public:
     ,   _td()
     {}
 
+    bool empty() const noexcept
+    {   return (_sq.empty() && _td.empty());   }
+
     // managing tagged data
     bool has(std::string tag) const
     {   return _td.find(tag) == _td.end() ? false : true;  }

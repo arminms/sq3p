@@ -9,18 +9,18 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     s["test"] = 33;
 
     SECTION( "comparison operators" )
-    {   CHECK(sq3p::seq<T>("ACGT") == s);
-        CHECK(!(sq3p::seq<T>("acgt") == s));
-        CHECK(sq3p::seq<T>("acgt") != s);
-        CHECK(!(sq3p::seq<T>("ACGT") != s));
+    {   CHECK(  s == sq3p::seq<T>("ACGT") );
+        CHECK(!(s == sq3p::seq<T>("acgt")));
+        CHECK(  s != sq3p::seq<T>("acgt") );
+        CHECK(!(s != sq3p::seq<T>("ACGT")));
     }
 
     // constructors
     SECTION( "single value constructor" )
     {   sq3p::seq<T> a4(4);
-        CHECK(sq3p::seq<T>("AAAA") == a4);
+        CHECK(a4 == sq3p::seq<T>("AAAA"));
         sq3p::seq<T> c4(4, 'C');
-        CHECK(sq3p::seq<T>("CCCC") == c4);
+        CHECK(c4 == sq3p::seq<T>("CCCC"));
     }
     SECTION( "iterator constructor" )
     {   std::string acgt{"ACGT"};
@@ -34,15 +34,19 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     }
     SECTION( "move constructor" )
     {   sq3p::seq<T> m(std::move(s));
-        CHECK('A' == m[0]);
-        CHECK('C' == m[1]);
-        CHECK('G' == m[2]);
-        CHECK('T' == m[3]);
+        CHECK(s.empty());
+        CHECK(m == sq3p::seq<T>("ACGT"));
         CHECK(33 == std::any_cast<int>(m["test"]));
     }
     SECTION( "initializer list" )
     {   sq3p::seq<T> c{'A', 'C', 'G', 'T'};
         CHECK(c == s);
+    }
+
+    SECTION( "empty()" )
+    {   sq3p::seq<T> e;
+        CHECK( e.empty() );
+        CHECK(!s.empty() );
     }
 
     SECTION( "subscript/array index operator" )
@@ -72,7 +76,10 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
 
         s["string_literal"] = "hello";
         CHECK(s.has("string_literal"));
-        CHECK(0 == std::strcmp("hello", std::any_cast<const char*>(s["string_literal"])));
+        CHECK(0 == std::strcmp
+                        (   "hello"
+                        ,   std::any_cast<const char*>(s["string_literal"]
+                        ) ) );
 
         s["string"] = std::string("hello");
         CHECK(s.has("string"));
