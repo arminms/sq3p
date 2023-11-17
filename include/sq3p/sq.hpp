@@ -83,7 +83,17 @@ public:
 
     value_type& operator[] (size_type pos)
     {   return _sq[pos];   }
+
+    template<typename Container1, typename Container2>
+    friend bool operator==
+    (   const seq<Container1>& lhs
+    ,   const seq<Container2>& rhs
+    );
 };
+
+    template<typename Container1, typename Container2>
+    bool operator== (const seq<Container1>& lhs, const seq<Container2>& rhs)
+    {   return lhs._sq == rhs._sq;   }
 
 }   // end sq3p namespace
 
