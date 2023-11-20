@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <any>
 #include <initializer_list>
+#include <utility>
 
 namespace sq3p {
 
@@ -100,8 +101,10 @@ public:
     // managing tagged data
     bool has(std::string tag) const
     {   return _td.find(tag) == _td.end() ? false : true;  }
-    std::any& operator[] (std::string tag)
+    std::any& operator[] (const std::string& tag)
     {   return _td[tag];   }
+    std::any& operator[] (std::string&& tag)
+    {   return _td[std::forward<std::string>(tag)];   }
 
     value_type& operator[] (size_type pos)
     {   return _sq[pos];   }
