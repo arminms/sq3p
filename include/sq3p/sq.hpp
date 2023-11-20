@@ -106,7 +106,10 @@ public:
     std::any& operator[] (std::string&& tag)
     {   return _td[std::forward<std::string>(tag)];   }
 
-    value_type& operator[] (size_type pos)
+    // subscript operator
+    reference operator[] (size_type pos)
+    {   return _sq[pos];   }
+    const_reference operator[] (size_type pos) const
     {   return _sq[pos];   }
 
     // comparison operators
