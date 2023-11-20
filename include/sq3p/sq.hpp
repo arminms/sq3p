@@ -117,6 +117,10 @@ public:
     (   const seq<Container1>& lhs
     ,   const seq<Container2>& rhs
     );
+
+    template<template <class> class Format>
+    bool load(std::string filename, std::string id, Format<Container> f)
+    {   return f(*this, filename, id);   }
 };
 
     template<typename Container1, typename Container2>
