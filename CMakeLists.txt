@@ -53,6 +53,10 @@ endif()
 include(GNUInstallDirs)
 include(FetchContent)
 
+## check for zlib
+#
+find_package(ZLIB)
+
 ## defining sq3p target
 #
 add_library(${PROJECT_NAME} INTERFACE)

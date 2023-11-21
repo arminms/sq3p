@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 
 #include <sq3p/sq.hpp>
-// #include <sq3p/io/fastaq.hpp>
+#include <sq3p/io/fastaqz.hpp>
 
 TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
@@ -126,4 +126,20 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(s == "ACGT"_sq);
     }
 
+}
+
+TEMPLATE_TEST_CASE( "sq3p::in::fastaq", "[io][in]", std::vector<char>)
+{   typedef TestType T;
+    sq3p::seq<T> s;
+    CHECK_THROWS_AS
+    (   s.load("wrong.fa", "no_id", sq3p::in::fastaqz<T>() )
+    ,   std::runtime_error
+    );
+    CHECK(s.load(SAMPLE_GENOME, "NC_017288.1",sq3p::in::fastaqz<T>()));
+    CHECK(7553 == std::size(s));
+    CHECK(s(0, 10) == sq3p::seq<T>{"TATAATTAAA"});
+    CHECK(s (7543) == sq3p::seq<T>{"TCCAATTCTA"});
+    CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
+    std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
+    CHECK(desc == std::any_cast<std::string>(s["_desc"]));
 }
