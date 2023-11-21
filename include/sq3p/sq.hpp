@@ -39,15 +39,15 @@ class seq
     std::unordered_map<std::string, std::any> _td;  // tagged data
 
 public:
-    typedef typename Container::value_type value_type;
-    typedef typename Container::size_type size_type;
-    typedef typename Container::difference_type difference_type;
-    typedef typename Container::reference reference;
-    typedef typename Container::const_reference const_reference;
-    typedef typename Container::iterator iterator;
-    typedef typename Container::const_iterator const_iterator;
-    typedef typename Container::reverse_iterator reverse_iterator;
-    typedef typename Container::const_reverse_iterator const_reverse_iterator;
+    using value_type = typename Container::value_type;
+    using size_type = typename Container::size_type;
+    using difference_type = typename Container::difference_type;
+    using reference = typename Container::reference;
+    using const_reference = typename Container::const_reference;
+    using iterator = typename Container::iterator;
+    using const_iterator = typename Container::const_iterator;
+    using reverse_iterator = typename Container::reverse_iterator;
+    using const_reverse_iterator = typename Container::const_reverse_iterator;
 
     // constructors
     seq() noexcept
