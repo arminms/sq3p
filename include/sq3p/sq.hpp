@@ -29,6 +29,7 @@
 #include <any>
 #include <initializer_list>
 #include <utility>
+#include <stdexcept>
 
 namespace sq3p {
 
@@ -127,10 +128,23 @@ public:
     ,   const seq<Container2>& rhs
     );
 
+    // subseq operator
+    seq operator() (size_type pos, size_type count = std::string::npos) const
+    {   if (pos > _sq.size())
+            throw std::out_of_range("sq3p::sq: pos > this->size()");
+        return seq
+        (   _sq.begin() + pos
+        ,   (count > _sq.size() - pos) ? _sq.end() : _sq.begin() + pos + count
+        );
+    }
+
     template<template <class> class Format>
     bool load(std::string filename, std::string id, Format<Container> f)
     {   return f(*this, filename, id);   }
 };
+
+    // sq operator""_sq (const char* str)
+    // {   return sq(str);   }
 
     template<typename Container1, typename Container2>
     bool operator== (const seq<Container1>& lhs, const seq<Container2>& rhs)

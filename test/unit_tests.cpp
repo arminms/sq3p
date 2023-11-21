@@ -9,10 +9,10 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     s["test"] = 33;
 
     SECTION( "comparison operators" )
-    {   CHECK(  s == sq3p::seq<T>("ACGT") );
-        CHECK(!(s == sq3p::seq<T>("acgt")));
-        CHECK(  s != sq3p::seq<T>("acgt") );
-        CHECK(!(s != sq3p::seq<T>("ACGT")));
+    {   REQUIRE(  s == sq3p::seq<T>("ACGT") );
+        REQUIRE(!(s == sq3p::seq<T>("acgt")));
+        REQUIRE(  s != sq3p::seq<T>("acgt") );
+        REQUIRE(!(s != sq3p::seq<T>("ACGT")));
     }
 
     // constructors
@@ -77,6 +77,14 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK('T' == s[3]);
         s[3] = 'U';
         CHECK('U' == s[3]);
+    }
+
+    SECTION ( "subseq operator" )
+    {   sq3p::seq<T> org{"CCATACGTGAC"};
+        CHECK(org(4, 4) == s);
+        CHECK(org(0) == org);
+        CHECK(org(4) == sq3p::seq<T>{"ACGTGAC"});
+        CHECK_THROWS_AS(org(20) == sq3p::seq<T>{"ACGTGAC"}, std::out_of_range);
     }
 
     SECTION( "tagged data" )
