@@ -95,8 +95,11 @@ public:
         return *this;
     }
 
+    // capacity
     bool empty() const noexcept
     {   return (_sq.empty() && _td.empty());   }
+    size_type size() const noexcept
+    {   return _sq.size();   }
 
     // managing tagged data
     bool has(std::string tag) const

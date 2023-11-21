@@ -1,6 +1,5 @@
-#include <cstring>
-
 #include <catch2/catch_all.hpp>
+
 #include <sq3p/sq.hpp>
 // #include <sq3p/io/fastaq.hpp>
 
@@ -14,7 +13,6 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(!(s == sq3p::seq<T>("acgt")));
         CHECK(  s != sq3p::seq<T>("acgt") );
         CHECK(!(s != sq3p::seq<T>("ACGT")));
-
     }
 
     // constructors
@@ -60,10 +58,16 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(c == s);
     }
 
+    // capacity
     SECTION( "empty()" )
     {   sq3p::seq<T> e;
         CHECK( e.empty() );
         CHECK(!s.empty() );
+    }
+    SECTION( "size()" )
+    {   sq3p::seq<T> e;
+        CHECK(0 == e.size());
+        CHECK(4 == s.size());
     }
 
     SECTION( "subscript/array index operator" )
