@@ -1,7 +1,7 @@
-#include <cstring>
-
 #include <catch2/catch_all.hpp>
+
 #include <sq3p/sq.hpp>
+#include <sq3p/io/fastaqz.hpp>
 
 TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
@@ -9,10 +9,10 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     s["test"] = 33;
 
     SECTION( "comparison operators" )
-    {   CHECK(  s == sq3p::seq<T>("ACGT") );
-        CHECK(!(s == sq3p::seq<T>("acgt")));
-        CHECK(  s != sq3p::seq<T>("acgt") );
-        CHECK(!(s != sq3p::seq<T>("ACGT")));
+    {   REQUIRE(  s == sq3p::seq<T>("ACGT") );
+        REQUIRE(!(s == sq3p::seq<T>("acgt")));
+        REQUIRE(  s != sq3p::seq<T>("acgt") );
+        REQUIRE(!(s != sq3p::seq<T>("ACGT")));
     }
 
     // constructors
@@ -43,10 +43,31 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(c == s);
     }
 
+    // copy assignment operators
+    SECTION( "copy assignment operator" )
+    {   sq3p::seq<T> c = s;
+        CHECK(c == s);
+        CHECK(33 == std::any_cast<int>(c["test"]));
+    }
+    SECTION( "move constructor" )
+    {   sq3p::seq<T> m = sq3p::seq<T>("ACGT");
+        CHECK(m == s);
+    }
+    SECTION( "initializer list" )
+    {   sq3p::seq<T> c = {'A', 'C', 'G', 'T'};
+        CHECK(c == s);
+    }
+
+    // capacity
     SECTION( "empty()" )
     {   sq3p::seq<T> e;
         CHECK( e.empty() );
         CHECK(!s.empty() );
+    }
+    SECTION( "size()" )
+    {   sq3p::seq<T> e;
+        CHECK(0 == e.size());
+        CHECK(4 == s.size());
     }
 
     SECTION( "subscript/array index operator" )
@@ -56,6 +77,14 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK('T' == s[3]);
         s[3] = 'U';
         CHECK('U' == s[3]);
+    }
+
+    SECTION( "subseq operator" )
+    {   sq3p::seq<T> org{"CCATACGTGAC"};
+        CHECK(org(4, 4) == s);
+        CHECK(org(0) == org);
+        CHECK(org(4) == sq3p::seq<T>{"ACGTGAC"});
+        CHECK_THROWS_AS(org(20) == sq3p::seq<T>{"ACGTGAC"}, std::out_of_range);
     }
 
     SECTION( "tagged data" )
@@ -90,4 +119,27 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(s.has("vector_int"));
         CHECK(v == std::any_cast<std::vector<int>>(s["vector_int"]));
     }
+
+    SECTION( "string literal operator" )
+    {   auto t = "ACGT"_sq;
+        CHECK(s == t);
+        CHECK(s == "ACGT"_sq);
+    }
+
+}
+
+TEMPLATE_TEST_CASE( "sq3p::in::fastaq", "[io][in]", std::vector<char>)
+{   typedef TestType T;
+    sq3p::seq<T> s;
+    CHECK_THROWS_AS
+    (   s.load("wrong.fa", "no_id", sq3p::in::fastaqz<T>() )
+    ,   std::runtime_error
+    );
+    CHECK(s.load(SAMPLE_GENOME, "NC_017288.1",sq3p::in::fastaqz<T>()));
+    CHECK(7553 == std::size(s));
+    CHECK(s(0, 10) == sq3p::seq<T>{"TATAATTAAA"});
+    CHECK(s (7543) == sq3p::seq<T>{"TCCAATTCTA"});
+    CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
+    std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
+    CHECK(desc == std::any_cast<std::string>(s["_desc"]));
 }

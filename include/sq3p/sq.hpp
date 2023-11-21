@@ -28,6 +28,8 @@
 #include <algorithm>
 #include <any>
 #include <initializer_list>
+#include <utility>
+#include <stdexcept>
 
 namespace sq3p {
 
@@ -37,15 +39,15 @@ class seq
     std::unordered_map<std::string, std::any> _td;  // tagged data
 
 public:
-    typedef typename Container::value_type value_type;
-    typedef typename Container::size_type size_type;
-    typedef typename Container::difference_type difference_type;
-    typedef typename Container::reference reference;
-    typedef typename Container::const_reference const_reference;
-    typedef typename Container::iterator iterator;
-    typedef typename Container::const_iterator const_iterator;
-    typedef typename Container::reverse_iterator reverse_iterator;
-    typedef typename Container::const_reverse_iterator const_reverse_iterator;
+    using value_type = typename Container::value_type;
+    using size_type = typename Container::size_type;
+    using difference_type = typename Container::difference_type;
+    using reference = typename Container::reference;
+    using const_reference = typename Container::const_reference;
+    using iterator = typename Container::iterator;
+    using const_iterator = typename Container::const_iterator;
+    using reverse_iterator = typename Container::reverse_iterator;
+    using const_reverse_iterator = typename Container::const_reverse_iterator;
 
     // constructors
     seq() noexcept
@@ -78,16 +80,40 @@ public:
     ,   _td()
     {}
 
+    // copy assignment operators
+    seq& operator= (const seq& other)
+    {   _sq = other._sq;
+        _td = other._td;
+        return *this;
+    }
+    seq& operator= (seq&& other)
+    {   _sq = std::move(other._sq);
+        _td = std::move(other._td);
+        return *this;
+    }
+    seq& operator= (std::initializer_list<value_type> init)
+    {   _sq = init;
+        return *this;
+    }
+
+    // capacity
     bool empty() const noexcept
     {   return (_sq.empty() && _td.empty());   }
+    size_type size() const noexcept
+    {   return _sq.size();   }
 
     // managing tagged data
     bool has(std::string tag) const
     {   return _td.find(tag) == _td.end() ? false : true;  }
-    std::any& operator[] (std::string tag)
+    std::any& operator[] (const std::string& tag)
     {   return _td[tag];   }
+    std::any& operator[] (std::string&& tag)
+    {   return _td[std::forward<std::string>(tag)];   }
 
-    value_type& operator[] (size_type pos)
+    // subscript operator
+    reference operator[] (size_type pos)
+    {   return _sq[pos];   }
+    const_reference operator[] (size_type pos) const
     {   return _sq[pos];   }
 
     // comparison operators
@@ -101,7 +127,23 @@ public:
     (   const seq<Container1>& lhs
     ,   const seq<Container2>& rhs
     );
+
+    // subseq operator
+    seq operator() (size_type pos, size_type count = std::string::npos) const
+    {   if (pos > _sq.size())
+            throw std::out_of_range("sq3p::sq: pos > this->size()");
+        return seq
+        (   _sq.begin() + pos
+        ,   (count > _sq.size() - pos) ? _sq.end() : _sq.begin() + pos + count
+        );
+    }
+
+    template<template <class> class Format>
+    bool load(std::string filename, std::string id, Format<Container> f)
+    {   return f(*this, filename, id);   }
 };
+
+    using sq = seq<std::vector<char>>;
 
     template<typename Container1, typename Container2>
     bool operator== (const seq<Container1>& lhs, const seq<Container2>& rhs)
@@ -112,5 +154,8 @@ public:
     {   return lhs._sq != rhs._sq;   }
 
 }   // end sq3p namespace
+
+    sq3p::sq operator""_sq (const char* str, std::size_t len)
+    {   return sq3p::sq(str);   }
 
 #endif  //_SQ3P_SQ_HPP_
