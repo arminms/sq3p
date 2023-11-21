@@ -79,7 +79,7 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK('U' == s[3]);
     }
 
-    SECTION ( "subseq operator" )
+    SECTION( "subseq operator" )
     {   sq3p::seq<T> org{"CCATACGTGAC"};
         CHECK(org(4, 4) == s);
         CHECK(org(0) == org);
@@ -119,4 +119,11 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(s.has("vector_int"));
         CHECK(v == std::any_cast<std::vector<int>>(s["vector_int"]));
     }
+
+    SECTION( "string literal operator" )
+    {   auto t = "ACGT"_sq;
+        CHECK(s == t);
+        CHECK(s == "ACGT"_sq);
+    }
+
 }

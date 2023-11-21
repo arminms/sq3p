@@ -143,8 +143,7 @@ public:
     {   return f(*this, filename, id);   }
 };
 
-    // sq operator""_sq (const char* str)
-    // {   return sq(str);   }
+    using sq = seq<std::vector<char>>;
 
     template<typename Container1, typename Container2>
     bool operator== (const seq<Container1>& lhs, const seq<Container2>& rhs)
@@ -155,5 +154,8 @@ public:
     {   return lhs._sq != rhs._sq;   }
 
 }   // end sq3p namespace
+
+    sq3p::sq operator""_sq (const char* str, std::size_t len)
+    {   return sq3p::sq(str);   }
 
 #endif  //_SQ3P_SQ_HPP_
