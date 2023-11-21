@@ -135,6 +135,7 @@ TEMPLATE_TEST_CASE( "sq3p::in::fastaq", "[io][in]", std::vector<char>)
     (   s.load("wrong.fa", "no_id", sq3p::in::fastaqz<T>() )
     ,   std::runtime_error
     );
+    CHECK(false == s.load(SAMPLE_GENOME, "bad_id",sq3p::in::fastaqz<T>()));
     CHECK(s.load(SAMPLE_GENOME, "NC_017288.1",sq3p::in::fastaqz<T>()));
     CHECK(7553 == std::size(s));
     CHECK(s(0, 10) == sq3p::seq<T>{"TATAATTAAA"});
@@ -142,4 +143,5 @@ TEMPLATE_TEST_CASE( "sq3p::in::fastaq", "[io][in]", std::vector<char>)
     CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
     std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
     CHECK(desc == std::any_cast<std::string>(s["_desc"]));
+
 }
