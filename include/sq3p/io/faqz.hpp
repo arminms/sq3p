@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#ifndef _SQ3P_IO_FASTAQZ_HPP_
-#define _SQ3P_IO_FASTAQZ_HPP_
+#ifndef _SQ3P_IO_FAQZ_HPP_
+#define _SQ3P_IO_FAQZ_HPP_
 
 #include <zlib.h>
 #include <sq3p/io/kseq.h>
@@ -30,7 +30,7 @@ namespace sq3p::in {
 KSEQ_INIT(gzFile, gzread)
 
 template <typename Container>
-struct fastaqz
+struct faqz_gen
 {   bool operator()
     (   sq3p::sq_gen<Container>& s
     ,   std::string filename
@@ -61,8 +61,8 @@ struct fastaqz
     }
 };
 
-    using faqz = fastaqz<std::vector<char>>;
+    using faqz = faqz_gen<std::vector<char>>;
 
 }   // end sq3p::in namespace
 
-#endif  //_SQ3P_IO_FASTAQZ_HPP_
+#endif  //_SQ3P_IO_FAQZ_HPP_

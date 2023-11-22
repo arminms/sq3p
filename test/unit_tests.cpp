@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 
 #include <sq3p/sq.hpp>
-#include <sq3p/io/fastaqz.hpp>
+#include <sq3p/io/faqz.hpp>
 
 TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
@@ -132,11 +132,11 @@ TEMPLATE_TEST_CASE( "sq3p::in::fastaq", "[io][in]", std::vector<char>)
 {   typedef TestType T;
     sq3p::sq_gen<T> s;
     CHECK_THROWS_AS
-    (   s.load("wrong.fa", "no_id", sq3p::in::fastaqz<T>() )
+    (   s.load("wrong.fa", "no_id", sq3p::in::faqz_gen<T>() )
     ,   std::runtime_error
     );
-    CHECK(false == s.load(SAMPLE_GENOME, "bad_id",sq3p::in::fastaqz<T>()));
-    CHECK(s.load(SAMPLE_GENOME, "NC_017288.1",sq3p::in::fastaqz<T>()));
+    CHECK(false == s.load(SAMPLE_GENOME, "bad_id",sq3p::in::faqz_gen<T>()));
+    CHECK(s.load(SAMPLE_GENOME, "NC_017288.1",sq3p::in::faqz_gen<T>()));
     CHECK(7553 == std::size(s));
     CHECK(s(0, 10) == sq3p::sq_gen<T>{"TATAATTAAA"});
     CHECK(s (7543) == sq3p::sq_gen<T>{"TCCAATTCTA"});
