@@ -118,15 +118,13 @@ public:
 
     // comparison operators
     template<typename Container1, typename Container2>
-    friend bool operator==
-    (   const seq<Container1>& lhs
-    ,   const seq<Container2>& rhs
-    );
+    friend
+    bool operator== (const seq<Container1>& lhs, const seq<Container2>& rhs)
+    {   return lhs._sq == rhs._sq;   }
     template<typename Container1, typename Container2>
-    friend bool operator!=
-    (   const seq<Container1>& lhs
-    ,   const seq<Container2>& rhs
-    );
+    friend
+    bool operator!= (const seq<Container1>& lhs, const seq<Container2>& rhs)
+    {   return lhs._sq != rhs._sq;   }
 
     // subseq operator
     seq operator() (size_type pos, size_type count = std::string::npos) const
@@ -144,14 +142,6 @@ public:
 };
 
     using sq = seq<std::vector<char>>;
-
-    template<typename Container1, typename Container2>
-    bool operator== (const seq<Container1>& lhs, const seq<Container2>& rhs)
-    {   return lhs._sq == rhs._sq;   }
-
-    template<typename Container1, typename Container2>
-    bool operator!= (const seq<Container1>& lhs, const seq<Container2>& rhs)
-    {   return lhs._sq != rhs._sq;   }
 
 }   // end sq3p namespace
 
