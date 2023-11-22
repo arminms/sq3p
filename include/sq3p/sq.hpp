@@ -34,7 +34,7 @@
 namespace sq3p {
 
 template <typename Container>
-class seq
+class sq_gen
 {   Container                                 _sq;  // sequence
     std::unordered_map<std::string, std::any> _td;  // tagged data
 
@@ -50,53 +50,55 @@ public:
     using const_reverse_iterator = typename Container::const_reverse_iterator;
 
     // constructors
-    seq() noexcept
+    sq_gen() noexcept
     :   _sq()
     ,   _td()
     {}
-    explicit seq(std::string sq)
+    explicit sq_gen(std::string sq)
     :   _sq(std::begin(sq), std::end(sq))
     ,   _td()
     {}
-    seq(size_type count, const_reference value = value_type(65))
+    sq_gen(size_type count, const_reference value = value_type(65))
     :   _sq(count, value)
     ,   _td()
     {}
     template<typename InputIt>
-    seq(InputIt first, InputIt last)
+    sq_gen(InputIt first, InputIt last)
     :   _sq(first, last)
     ,   _td()
     {}
-    seq(const seq& other)
+    sq_gen(const sq_gen& other)
     :   _sq(other._sq)
     ,   _td(other._td)
     {}
-    seq(seq&& other)
+    sq_gen(sq_gen&& other)
     :   _sq(std::move(other._sq))
     ,   _td(std::move(other._td))
     {}
-    seq(std::initializer_list<value_type> init)
+    sq_gen(std::initializer_list<value_type> init)
     :   _sq(init)
     ,   _td()
     {}
 
-    // copy assignment operators
-    seq& operator= (const seq& other)
+    // -- copy assignment operators --
+    sq_gen& operator= (const sq_gen& other)
     {   _sq = other._sq;
         _td = other._td;
         return *this;
     }
-    seq& operator= (seq&& other)
+    sq_gen& operator= (sq_gen&& other)
     {   _sq = std::move(other._sq);
         _td = std::move(other._td);
         return *this;
     }
-    seq& operator= (std::initializer_list<value_type> init)
+    sq_gen& operator= (std::initializer_list<value_type> init)
     {   _sq = init;
         return *this;
     }
 
-    // capacity
+    // -- capacity --
+
+    /// Returns true if the @a sq is empty. (Thus begin() would equal end().)
     bool empty() const noexcept
     {   return (_sq.empty() && _td.empty());   }
     size_type size() const noexcept
@@ -119,18 +121,18 @@ public:
     // comparison operators
     template<typename Container1, typename Container2>
     friend
-    bool operator== (const seq<Container1>& lhs, const seq<Container2>& rhs)
+    bool operator== (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
     {   return lhs._sq == rhs._sq;   }
     template<typename Container1, typename Container2>
     friend
-    bool operator!= (const seq<Container1>& lhs, const seq<Container2>& rhs)
+    bool operator!= (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
     {   return lhs._sq != rhs._sq;   }
 
     // subseq operator
-    seq operator() (size_type pos, size_type count = std::string::npos) const
+    sq_gen operator() (size_type pos, size_type count = std::string::npos) const
     {   if (pos > _sq.size())
             throw std::out_of_range("sq3p::sq: pos > this->size()");
-        return seq
+        return sq_gen
         (   _sq.begin() + pos
         ,   (count > _sq.size() - pos) ? _sq.end() : _sq.begin() + pos + count
         );
@@ -141,7 +143,8 @@ public:
     {   return f(*this, filename, id);   }
 };
 
-    using sq = seq<std::vector<char>>;
+    /// A sequence of @a char
+    using sq = sq_gen<std::vector<char>>;
 
 }   // end sq3p namespace
 

@@ -32,7 +32,7 @@ KSEQ_INIT(gzFile, gzread)
 template <typename Container>
 struct fastaqz
 {   bool operator()
-    (   sq3p::seq<Container>& s
+    (   sq3p::sq_gen<Container>& s
     ,   std::string filename
     ,   std::string id) const
     {   gzFile fp = filename == "-"
@@ -41,21 +41,21 @@ struct fastaqz
         if (nullptr == fp)
             throw std::runtime_error
                 ("sq3p::faqz: could not open file -> " + filename);
-        kseq_t* seq = kseq_init(fp);
-        while (kseq_read(seq) >= 0)
-        {   std::string name(seq->name.s);
+        kseq_t* sq_gen = kseq_init(fp);
+        while (kseq_read(sq_gen) >= 0)
+        {   std::string name(sq_gen->name.s);
             if (name == id)
-            {   sq3p::seq<Container> in(seq->seq.s);
+            {   sq3p::sq_gen<Container> in(sq_gen->sq_gen.s);
                 in["_id"] = name;
-                if (seq->qual.l)
-                    in["_qs"] = std::string(seq->qual.s);
-                if (seq->comment.l)
-                    in["_desc"] = std::string(seq->comment.s);
+                if (sq_gen->qual.l)
+                    in["_qs"] = std::string(sq_gen->qual.s);
+                if (sq_gen->comment.l)
+                    in["_desc"] = std::string(sq_gen->comment.s);
                 s = in;
                 break;
             } 
         }
-        kseq_destroy(seq);
+        kseq_destroy(sq_gen);
         gzclose(fp);
         return s.has("_id");
     }
