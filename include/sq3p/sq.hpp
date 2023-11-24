@@ -25,14 +25,110 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <algorithm>
 #include <any>
 #include <initializer_list>
 #include <utility>
 #include <stdexcept>
-
+#include <typeindex>
+#include <iomanip>
 namespace sq3p {
+
+template<class T, class F>
+inline
+std::pair<const std::type_index, std::function<void(std::ostream&, const std::any&)>>
+    make_td_print_visitor(const F& f)
+{   return
+    {   std::type_index(typeid(T)),
+        [g = f](std::ostream& os, const std::any& a)
+        {   if constexpr (std::is_void_v<T>) g(os);
+            else g(os, std::any_cast<const T&>(a));
+        }
+    };
+}
+
+static std::unordered_map<std::type_index, std::function<void(std::ostream&, const std::any&)>>
+    td_print_visitor
+{   make_td_print_visitor<void>
+    (   [] (std::ostream& os)
+        { os << std::quoted("void", '|') << "{}"; }
+    )
+,   make_td_print_visitor<bool>
+    (   [](std::ostream& os, bool x)
+        { os << std::quoted("bool", '|') << x; }
+    )
+,   make_td_print_visitor<int>
+    (   [](std::ostream& os, int x)
+        { os << std::quoted("int", '|') << x; }
+    )
+,   make_td_print_visitor<unsigned>
+    (   [](std::ostream& os, unsigned x)
+        { os << std::quoted("unsigned", '|') << x; }
+    )
+,   make_td_print_visitor<float>
+    (   [](std::ostream& os, float x)
+        { os << std::quoted("float", '|') << x; }
+    )
+,   make_td_print_visitor<double>
+    (   [](std::ostream& os, double x)
+        { os << std::quoted("double", '|') << x; }
+    )
+,   make_td_print_visitor<std::string>
+    (   [] (std::ostream& os, std::string s)
+        { os << std::quoted("string", '|') << std::quoted(s); }
+    )
+,   make_td_print_visitor<const char*>
+    (   [] (std::ostream& os, const char* s)
+        { os << std::quoted("const char*", '|') << std::quoted(s); }
+    )
+    // ... add more handlers here ...
+};
+
+static std::unordered_map<std::string, std::function<void(std::istream&, std::any&)>>
+    td_scan_visitor
+{   {   "void"
+    ,   [] (std::istream& is, std::any& a)
+        { is.ignore(2) ; a = {}; }
+    }
+    ,
+    {   "bool"
+    ,   [] (std::istream& is, std::any& a)
+        { bool x; is >> x; a = x; }
+    }
+    ,
+    {   "int"
+    ,   [] (std::istream& is, std::any& a)
+        { int x; is >> x; a = x; }
+    }
+    ,
+    {   "unsigned"
+    ,   [] (std::istream& is, std::any& a)
+        { unsigned x; is >> x; a = x; }
+    }
+    ,
+    {   "float"
+    ,   [] (std::istream& is, std::any& a)
+        { float x; is >> x; a = x; }
+    }
+    ,
+    {   "double"
+    ,   [] (std::istream& is, std::any& a)
+        { double x; is >> x; a = x; }
+    }
+    ,
+    {   "string"
+    ,   [] (std::istream& is, std::any& a)
+        { std::string s; is >> std::quoted(s); a = s; }
+    }
+    ,
+    {   "const char*"
+    ,   [] (std::istream& is, std::any& a)
+        { std::string s; is >> std::quoted(s); a = s.c_str(); }
+    }
+    // ... add more handlers here ...
+};
 
 template <typename Container>
 class sq_gen
@@ -50,7 +146,8 @@ public:
     using reverse_iterator = typename Container::reverse_iterator;
     using const_reverse_iterator = typename Container::const_reverse_iterator;
 
-    // -- constructors ---------------------------------------------------------
+// -- constructors -------------------------------------------------------------
+
     sq_gen() noexcept
     :   _sq()
     ,   _td()
@@ -81,7 +178,8 @@ public:
     ,   _td()
     {}
 
-    // -- copy assignment operators --------------------------------------------
+// -- copy assignment operators ------------------------------------------------
+
     sq_gen& operator= (const sq_gen& other)
     {   _sq = other._sq;
         _td = other._td;
@@ -97,7 +195,7 @@ public:
         return *this;
     }
 
-    // -- capacity -------------------------------------------------------------
+// -- capacity -----------------------------------------------------------------
 
     /// Returns true if the @a sq is empty. (Thus begin() would equal end().)
     bool empty() const noexcept
@@ -105,7 +203,8 @@ public:
     size_type size() const noexcept
     {   return _sq.size();   }
 
-    // -- managing tagged data -------------------------------------------------
+// -- managing tagged data -----------------------------------------------------
+
     bool has(std::string tag) const
     {   return _td.find(tag) == _td.end() ? false : true;  }
     std::any& operator[] (const std::string& tag)
@@ -113,13 +212,15 @@ public:
     std::any& operator[] (std::string&& tag)
     {   return _td[std::forward<std::string>(tag)];   }
 
-    // -- subscript operator ---------------------------------------------------
+// -- subscript operator -------------------------------------------------------
+
     reference operator[] (size_type pos)
     {   return _sq[pos];   }
     const_reference operator[] (size_type pos) const
     {   return _sq[pos];   }
 
-    // -- comparison operators -------------------------------------------------
+// -- comparison operators -----------------------------------------------------
+
     template<typename Container1, typename Container2>
     friend
     bool operator== (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
@@ -129,7 +230,8 @@ public:
     bool operator!= (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
     {   return lhs._sq != rhs._sq;   }
 
-    // -- subseq operator ------------------------------------------------------
+// -- subseq operator ----------------------------------------------------------
+
     sq_gen operator() (size_type pos, size_type count = std::string::npos) const
     {   if (pos > _sq.size())
             throw std::out_of_range("sq3p::sq: pos > this->size()");
@@ -139,20 +241,64 @@ public:
         );
     }
 
+// -- file i/o -----------------------------------------------------------------
+
     template<template <class> class Format>
     bool load(std::string filename, std::string id, Format<Container> f)
     {   return f(*this, filename, id);   }
 
     void print(std::ostream& os) const
-    {   os.write(_sq.data(), _sq.size());   }
+    {   os << _sq.size() << '\n';
+        os.write(_sq.data(), _sq.size());
+        for (const auto& [tag, data] : _td)
+        {   os << '\n' << std::quoted(tag, '#');
+            if
+            (   const auto it = td_print_visitor.find(std::type_index(data.type()))
+            ;    it != td_print_visitor.cend()
+            )
+                it->second(os, data);
+            else
+                os << std::quoted("UNREGISTERED TYPE", '|')
+                //    << std::quoted(data.type().name())
+                   << "{}";
+        }
+    }
+    void scan(std::istream& is)
+    {   size_type n;
+        is >> n;
+        is.peek() == '\r' ? is.ignore(2) : is.ignore();
+        _sq.resize(n);
+        is.read(_sq.data(), n);
+        is.peek() == '\r' ? is.ignore(2) : is.ignore();
+        while (is.peek() == '#')
+        {   std::string tag, type;
+            std::any a;
+            is >> std::quoted(tag, '#')
+               >> std::quoted(type, '|');
+            if
+            (   const auto it = td_scan_visitor.find(type)
+            ;    it != td_scan_visitor.cend()
+            )
+                it->second(is, a);
+            else
+                throw std::runtime_error("sq3p::sq: unregistered type -> " + type);
+            _td[tag] = a;
+        }
+    }
 };
 
     /// A sequence of @a char
     using sq = sq_gen<std::vector<char>>;
 
-    std::ostream& operator << (std::ostream& os, const sq& s)
+// -- stream i/o operators -----------------------------------------------------
+
+    std::ostream& operator<< (std::ostream& os, const sq& s)
     {   s.print(os);
         return os;
+    }
+    std::istream& operator>> (std::istream& is, sq& s)
+    {   s.scan(is);
+        return is;
     }
 
 }   // end sq3p namespace
