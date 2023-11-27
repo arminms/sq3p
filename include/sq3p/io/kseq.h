@@ -159,7 +159,7 @@ typedef struct __kstring_t {
 	SCOPE void kseq_destroy(kseq_t *ks)									\
 	{																	\
 		if (!ks) return;												\
-		free(ks->name.s); free(ks->comment.s); free(ks->sq_gen.s);	free(ks->qual.s); \
+		free(ks->name.s); free(ks->comment.s); free(ks->seq.s);	free(ks->qual.s); \
 		ks_destroy(ks->f);												\
 		free(ks);														\
 	}
@@ -171,51 +171,51 @@ typedef struct __kstring_t {
    -3   error reading stream
  */
 #define __KSEQ_READ(SCOPE) \
-	SCOPE int kseq_read(kseq_t *sq_gen) \
+	SCOPE int kseq_read(kseq_t *seq) \
 	{ \
 		int c,r; \
-		kstream_t *ks = sq_gen->f; \
-		if (sq_gen->last_char == 0) { /* then jump to the next header line */ \
+		kstream_t *ks = seq->f; \
+		if (seq->last_char == 0) { /* then jump to the next header line */ \
 			while ((c = ks_getc(ks)) >= 0 && c != '>' && c != '@'); \
 			if (c < 0) return c; /* end of file or error*/ \
-			sq_gen->last_char = c; \
+			seq->last_char = c; \
 		} /* else: the first header char has been read in the previous call */ \
-		sq_gen->comment.l = sq_gen->sq_gen.l = sq_gen->qual.l = 0; /* reset all members */ \
-		if ((r=ks_getuntil(ks, 0, &sq_gen->name, &c)) < 0) return r;  /* normal exit: EOF or error */ \
-		if (c != '\n') ks_getuntil(ks, KS_SEP_LINE, &sq_gen->comment, 0); /* read FASTA/Q comment */ \
-		if (sq_gen->sq_gen.s == 0) { /* we can do this in the loop below, but that is slower */ \
-			sq_gen->sq_gen.m = 256; \
-			sq_gen->sq_gen.s = (char*)malloc(sq_gen->sq_gen.m); \
+		seq->comment.l = seq->seq.l = seq->qual.l = 0; /* reset all members */ \
+		if ((r=ks_getuntil(ks, 0, &seq->name, &c)) < 0) return r;  /* normal exit: EOF or error */ \
+		if (c != '\n') ks_getuntil(ks, KS_SEP_LINE, &seq->comment, 0); /* read FASTA/Q comment */ \
+		if (seq->seq.s == 0) { /* we can do this in the loop below, but that is slower */ \
+			seq->seq.m = 256; \
+			seq->seq.s = (char*)malloc(seq->seq.m); \
 		} \
 		while ((c = ks_getc(ks)) >= 0 && c != '>' && c != '+' && c != '@') { \
 			if (c == '\n') continue; /* skip empty lines */ \
-			sq_gen->sq_gen.s[sq_gen->sq_gen.l++] = c; /* this is safe: we always have enough space for 1 char */ \
-			ks_getuntil2(ks, KS_SEP_LINE, &sq_gen->sq_gen, 0, 1); /* read the rest of the line */ \
+			seq->seq.s[seq->seq.l++] = c; /* this is safe: we always have enough space for 1 char */ \
+			ks_getuntil2(ks, KS_SEP_LINE, &seq->seq, 0, 1); /* read the rest of the line */ \
 		} \
-		if (c == '>' || c == '@') sq_gen->last_char = c; /* the first header char has been read */	\
-		if (sq_gen->sq_gen.l + 1 >= sq_gen->sq_gen.m) { /* sq_gen->sq_gen.s[sq_gen->sq_gen.l] below may be out of boundary */ \
-			sq_gen->sq_gen.m = sq_gen->sq_gen.l + 2; \
-			kroundup32(sq_gen->sq_gen.m); /* rounded to the next closest 2^k */ \
-			sq_gen->sq_gen.s = (char*)realloc(sq_gen->sq_gen.s, sq_gen->sq_gen.m); \
+		if (c == '>' || c == '@') seq->last_char = c; /* the first header char has been read */	\
+		if (seq->seq.l + 1 >= seq->seq.m) { /* seq->seq.s[seq->seq.l] below may be out of boundary */ \
+			seq->seq.m = seq->seq.l + 2; \
+			kroundup32(seq->seq.m); /* rounded to the next closest 2^k */ \
+			seq->seq.s = (char*)realloc(seq->seq.s, seq->seq.m); \
 		} \
-		sq_gen->sq_gen.s[sq_gen->sq_gen.l] = 0;	/* null terminated string */ \
-		if (c != '+') return sq_gen->sq_gen.l; /* FASTA */ \
-		if (sq_gen->qual.m < sq_gen->sq_gen.m) {	/* allocate memory for qual in case insufficient */ \
-			sq_gen->qual.m = sq_gen->sq_gen.m; \
-			sq_gen->qual.s = (char*)realloc(sq_gen->qual.s, sq_gen->qual.m); \
+		seq->seq.s[seq->seq.l] = 0;	/* null terminated string */ \
+		if (c != '+') return seq->seq.l; /* FASTA */ \
+		if (seq->qual.m < seq->seq.m) {	/* allocate memory for qual in case insufficient */ \
+			seq->qual.m = seq->seq.m; \
+			seq->qual.s = (char*)realloc(seq->qual.s, seq->qual.m); \
 		} \
 		while ((c = ks_getc(ks)) >= 0 && c != '\n'); /* skip the rest of '+' line */ \
 		if (c == -1) return -2; /* error: no quality string */ \
-		while ((c = ks_getuntil2(ks, KS_SEP_LINE, &sq_gen->qual, 0, 1) >= 0 && sq_gen->qual.l < sq_gen->sq_gen.l)); \
+		while ((c = ks_getuntil2(ks, KS_SEP_LINE, &seq->qual, 0, 1) >= 0 && seq->qual.l < seq->seq.l)); \
 		if (c == -3) return -3; /* stream error */ \
-		sq_gen->last_char = 0;	/* we have not come to the next header line */ \
-		if (sq_gen->sq_gen.l != sq_gen->qual.l) return -2; /* error: qual string is of a different length */ \
-		return sq_gen->sq_gen.l; \
+		seq->last_char = 0;	/* we have not come to the next header line */ \
+		if (seq->seq.l != seq->qual.l) return -2; /* error: qual string is of a different length */ \
+		return seq->seq.l; \
 	}
 
 #define __KSEQ_TYPE(type_t)						\
 	typedef struct {							\
-		kstring_t name, comment, sq_gen, qual;		\
+		kstring_t name, comment, seq, qual;		\
 		int last_char;							\
 		kstream_t *f;							\
 	} kseq_t;
@@ -233,6 +233,6 @@ typedef struct __kstring_t {
 	__KSEQ_TYPE(type_t) \
 	extern kseq_t *kseq_init(type_t fd); \
 	void kseq_destroy(kseq_t *ks); \
-	int kseq_read(kseq_t *sq_gen);
+	int kseq_read(kseq_t *seq);
 
 #endif
