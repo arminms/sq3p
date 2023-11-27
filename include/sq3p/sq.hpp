@@ -127,6 +127,11 @@ static std::unordered_map<std::string, std::function<void(std::istream&, std::an
     ,   [] (std::istream& is, std::any& a)
         { std::string s; is >> std::quoted(s); a = s.c_str(); }
     }
+    ,
+    {   "UNREGISTERED TYPE"
+    ,   [] (std::istream& is, std::any& a)
+        { is.ignore(2) ; a = {}; }
+    }
     // ... add more handlers here ...
 };
 
