@@ -79,9 +79,13 @@ static std::unordered_map<std::type_index, std::function<void(std::ostream&, con
     (   [] (std::ostream& os, std::string s)
         { os << std::quoted("string", '|') << std::quoted(s); }
     )
-,   make_td_print_visitor<const char*>
-    (   [] (std::ostream& os, const char* s)
-        { os << std::quoted("const char*", '|') << std::quoted(s); }
+,   make_td_print_visitor<std::vector<int>>
+    (   [] (std::ostream& os, std::vector<int> v)
+        {   os << std::quoted("std::vector<int>", '|') << '{';
+            for (auto i : v)
+                os << i << ',';
+            os << '}';
+        }
     )
     // ... add more handlers here ...
 };
@@ -123,9 +127,19 @@ static std::unordered_map<std::string, std::function<void(std::istream&, std::an
         { std::string s; is >> std::quoted(s); a = s; }
     }
     ,
-    {   "const char*"
+    {   "std::vector<int>"
     ,   [] (std::istream& is, std::any& a)
-        { std::string s; is >> std::quoted(s); a = s.c_str(); }
+        {   std::vector<int> v;
+            int i;
+            is.ignore();
+            while (is.peek() != '}')
+            {   is >> i;
+                is.ignore();
+                v.push_back(i);
+            }
+            is.ignore();
+            a = v;
+        }
     }
     ,
     {   "UNREGISTERED TYPE"
@@ -253,10 +267,10 @@ public:
     {   return f(*this, filename, id);   }
 
     void print(std::ostream& os) const
-    {   os << _sq.size() << '\n';
+    {   os << std::boolalpha << _sq.size();
         os.write(_sq.data(), _sq.size());
         for (const auto& [tag, data] : _td)
-        {   os << '\n' << std::quoted(tag, '#');
+        {   os << std::quoted(tag, '#');
             if
             (   const auto it = td_print_visitor.find(std::type_index(data.type()))
             ;    it != td_print_visitor.cend()
@@ -270,11 +284,9 @@ public:
     }
     void scan(std::istream& is)
     {   size_type n;
-        is >> n;
-        is.peek() == '\r' ? is.ignore(2) : is.ignore();
+        is >> std::boolalpha >> n;
         _sq.resize(n);
         is.read(_sq.data(), n);
-        is.peek() == '\r' ? is.ignore(2) : is.ignore();
         while (is.peek() == '#')
         {   std::string tag, type;
             std::any a;

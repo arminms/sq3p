@@ -27,15 +27,7 @@
 TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
     sq3p::sq_gen<T> s{"ACGT"};
-    s["test"] = 33;
-
-    SECTION( "input/output operators")
-    {   std::stringstream ss;
-        ss << s;
-        sq3p::sq_gen<T> t;
-        ss >> t;
-        CHECK(s == t);
-    }
+    s["test-int"] = -33;
 
     SECTION( "comparison operators" )
     {   REQUIRE(  s == sq3p::sq_gen<T>("ACGT") );
@@ -59,13 +51,13 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     SECTION( "copy constructor" )
     {   sq3p::sq_gen<T> c(s);
         CHECK(c == s);
-        CHECK(33 == std::any_cast<int>(c["test"]));
+        CHECK(-33 == std::any_cast<int>(c["test-int"]));
     }
     SECTION( "move constructor" )
     {   sq3p::sq_gen<T> m(std::move(s));
         CHECK(s.empty());
         CHECK(m == sq3p::sq_gen<T>("ACGT"));
-        CHECK(33 == std::any_cast<int>(m["test"]));
+        CHECK(-33 == std::any_cast<int>(m["test-int"]));
     }
     SECTION( "initializer list" )
     {   sq3p::sq_gen<T> c{'A', 'C', 'G', 'T'};
@@ -76,7 +68,7 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     SECTION( "copy assignment operator" )
     {   sq3p::sq_gen<T> c = s;
         CHECK(c == s);
-        CHECK(33 == std::any_cast<int>(c["test"]));
+        CHECK(-33 == std::any_cast<int>(c["test-int"]));
     }
     SECTION( "move constructor" )
     {   sq3p::sq_gen<T> m = sq3p::sq_gen<T>("ACGT");
@@ -117,7 +109,7 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     }
 
     SECTION( "tagged data" )
-    {   CHECK(s.has("test"));
+    {   CHECK(s.has("test-int"));
         CHECK(false == s.has("no"));
 
         s["int"] = 19;
@@ -132,13 +124,6 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(s.has("double"));
         CHECK(3.14 == std::any_cast<double>(s["double"]));
 
-        s["string_literal"] = "hello";
-        CHECK(s.has("string_literal"));
-        CHECK(0 == std::strcmp
-                        (   "hello"
-                        ,   std::any_cast<const char*>(s["string_literal"]
-                        ) ) );
-
         s["string"] = std::string("hello");
         CHECK(s.has("string"));
         CHECK("hello" == std::any_cast<std::string>(s["string"]));
@@ -147,6 +132,33 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         s["vector_int"] = v;
         CHECK(s.has("vector_int"));
         CHECK(v == std::any_cast<std::vector<int>>(s["vector_int"]));
+    }
+
+    SECTION( "input/output operators")
+    {   s["test-void"] = {};
+        s["test-bool"] = true;
+        s["test-unsigned"] = 33u;
+        s["test-float"] = 3.14f;
+        s["test-double"] = 3.14;
+        s["test-string"] = std::string("hello");
+        s["test-vector-int"] = std::vector<int>{ 1, 2, 3, 4 };
+
+        std::stringstream ss;
+        ss << s;
+        sq3p::sq_gen<T> t;
+        ss >> t;
+
+        CHECK(s == t);
+        CHECK(s.has("test-void"));
+        CHECK(t.has("test-void"));
+        CHECK(std::any_cast<bool>(s["test-bool"]) == std::any_cast<bool>(t["test-bool"]));
+        CHECK(std::any_cast<int>(s["test-int"]) == std::any_cast<int>(t["test-int"]));
+        CHECK(std::any_cast<unsigned>(s["test-unsigned"]) == std::any_cast<unsigned>(t["test-unsigned"]));
+        CHECK(std::any_cast<float>(s["test-float"]) == std::any_cast<float>(t["test-float"]));
+        CHECK(std::any_cast<double>(s["test-double"]) == std::any_cast<double>(t["test-double"]));
+        CHECK(std::any_cast<std::string>(s["test-string"]) == std::any_cast<std::string>(t["test-string"]));
+        CHECK(4 == std::any_cast<std::vector<int>>(s["test-vector-int"]).size());
+
     }
 
     SECTION( "string literal operator" )
