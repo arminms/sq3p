@@ -92,8 +92,9 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         for (auto& a : t)
             a = 'T';
         CHECK(t == sq3p::sq_gen<T>(4, 'T'));
+        auto s_it = s.cbegin();
         for
-        (   auto t_it = t.begin(), s_it = s.cbegin()
+        (   auto t_it = t.begin()
         ;   t_it != t.end()
         ;   ++t_it, ++s_it
         )
@@ -102,8 +103,9 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     }
     SECTION( "cbegin/cend" )
     {   const sq3p::sq_gen<T> t(4);
+        auto s_it = s.begin();
         for
-        (   auto t_it = t.cbegin(), s_it = s.begin()
+        (   auto t_it = t.cbegin()
         ;   t_it != t.cend()
         ;   ++t_it, ++s_it
         )
@@ -112,8 +114,9 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     }
     SECTION( "rbegin/rend" )
     {   sq3p::sq_gen<T> t(4);
+        auto s_it = s.cbegin();
         for
-        (   auto t_it = t.rbegin(), s_it = s.cbegin()
+        (   auto t_it = t.rbegin()
         ;   t_it != t.rend()
         ;   ++t_it, ++s_it
         )
@@ -122,8 +125,9 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     }
     SECTION( "crbegin/crend" )
     {   const sq3p::sq_gen<T> t("ACGT");
+        auto s_it = s.begin();
         for
-        (   auto t_it = t.crbegin(), s_it = s.begin()
+        (   auto t_it = t.crbegin()
         ;   t_it != t.crend()
         ;   ++t_it, ++s_it
         )

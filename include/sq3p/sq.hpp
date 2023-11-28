@@ -249,12 +249,6 @@ public:
     }
 };
 
-    ///
-    /// A sequence of @a char
-    using sq = sq_gen<std::vector<char>>;
-
-}   // end sq3p namespace
-
 // -- stream i/o operators -----------------------------------------------------
 
     std::ostream& operator<< (std::ostream& os, const sq3p::sq& s)
@@ -265,6 +259,12 @@ public:
     {   s.scan(is);
         return is;
     }
+
+    ///
+    /// A sequence of @a char
+    using sq = sq_gen<std::vector<char>>;
+
+}   // end sq3p namespace
 
 // -- string literal operator --------------------------------------------------
 
