@@ -183,10 +183,4 @@ TEMPLATE_TEST_CASE( "sq3p::in::fastaq", "[io][in]", std::vector<char>)
     CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
     std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
     CHECK(desc == std::any_cast<std::string>(s["_desc"]));
-
-    // std::stringstream ss;
-    // ss << s;
-    // sq3p::sq_gen<T> p;
-    // ss >> p;
-    // CHECK(s == p);
 }

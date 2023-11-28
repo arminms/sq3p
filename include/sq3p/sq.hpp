@@ -22,132 +22,14 @@
 #ifndef _SQ3P_SQ_HPP_
 #define _SQ3P_SQ_HPP_
 
-#include <iostream>
-#include <vector>
-#include <string>
 #include <sstream>
-#include <unordered_map>
 #include <algorithm>
-#include <any>
 #include <initializer_list>
-#include <utility>
 #include <stdexcept>
-#include <typeindex>
-#include <iomanip>
+
+#include <sq3p/visitor.hpp>
+
 namespace sq3p {
-
-template<class T, class F>
-inline
-std::pair<const std::type_index, std::function<void(std::ostream&, const std::any&)>>
-    make_td_print_visitor(const F& f)
-{   return
-    {   std::type_index(typeid(T)),
-        [g = f](std::ostream& os, const std::any& a)
-        {   if constexpr (std::is_void_v<T>) g(os);
-            else g(os, std::any_cast<const T&>(a));
-        }
-    };
-}
-
-static std::unordered_map<std::type_index, std::function<void(std::ostream&, const std::any&)>>
-    td_print_visitor
-{   make_td_print_visitor<void>
-    (   [] (std::ostream& os)
-        { os << std::quoted("void", '|') << "{}"; }
-    )
-,   make_td_print_visitor<bool>
-    (   [](std::ostream& os, bool x)
-        { os << std::quoted("bool", '|') << x; }
-    )
-,   make_td_print_visitor<int>
-    (   [](std::ostream& os, int x)
-        { os << std::quoted("int", '|') << x; }
-    )
-,   make_td_print_visitor<unsigned>
-    (   [](std::ostream& os, unsigned x)
-        { os << std::quoted("unsigned", '|') << x; }
-    )
-,   make_td_print_visitor<float>
-    (   [](std::ostream& os, float x)
-        { os << std::quoted("float", '|') << x; }
-    )
-,   make_td_print_visitor<double>
-    (   [](std::ostream& os, double x)
-        { os << std::quoted("double", '|') << x; }
-    )
-,   make_td_print_visitor<std::string>
-    (   [] (std::ostream& os, std::string s)
-        { os << std::quoted("string", '|') << std::quoted(s); }
-    )
-,   make_td_print_visitor<std::vector<int>>
-    (   [] (std::ostream& os, std::vector<int> v)
-        {   os << std::quoted("std::vector<int>", '|') << '{';
-            for (auto i : v)
-                os << i << ',';
-            os << '}';
-        }
-    )
-    // ... add more handlers here ...
-};
-
-static std::unordered_map<std::string, std::function<void(std::istream&, std::any&)>>
-    td_scan_visitor
-{   {   "void"
-    ,   [] (std::istream& is, std::any& a)
-        { is.ignore(2) ; a = {}; }
-    }
-    ,
-    {   "bool"
-    ,   [] (std::istream& is, std::any& a)
-        { bool x; is >> x; a = x; }
-    }
-    ,
-    {   "int"
-    ,   [] (std::istream& is, std::any& a)
-        { int x; is >> x; a = x; }
-    }
-    ,
-    {   "unsigned"
-    ,   [] (std::istream& is, std::any& a)
-        { unsigned x; is >> x; a = x; }
-    }
-    ,
-    {   "float"
-    ,   [] (std::istream& is, std::any& a)
-        { float x; is >> x; a = x; }
-    }
-    ,
-    {   "double"
-    ,   [] (std::istream& is, std::any& a)
-        { double x; is >> x; a = x; }
-    }
-    ,
-    {   "string"
-    ,   [] (std::istream& is, std::any& a)
-        { std::string s; is >> std::quoted(s); a = s; }
-    }
-    ,
-    {   "std::vector<int>"
-    ,   [] (std::istream& is, std::any& a)
-        {   std::vector<int> v;
-            int i;
-            is.ignore();
-            while (is.peek() != '}')
-            {   is >> i;
-                is.ignore();
-                v.push_back(i);
-            }
-            is.ignore();
-            a = v;
-        }
-    }
-    ,
-    {   "UNREGISTERED TYPE"
-    ,   [] (std::istream& is, std::any& a)
-        { is.ignore(2) ; a = {}; }
-    }
-    // ... add more handlers here ...
-};
 
 template <typename Container>
 class sq_gen
