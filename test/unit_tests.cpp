@@ -158,7 +158,6 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(std::any_cast<double>(s["test-double"]) == std::any_cast<double>(t["test-double"]));
         CHECK(std::any_cast<std::string>(s["test-string"]) == std::any_cast<std::string>(t["test-string"]));
         CHECK(4 == std::any_cast<std::vector<int>>(s["test-vector-int"]).size());
-
     }
 
     SECTION( "string literal operator" )
@@ -168,7 +167,7 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     }
 }
 
-TEMPLATE_TEST_CASE( "sq3p::in::fastaq", "[io][in]", std::vector<char>)
+TEMPLATE_TEST_CASE( "sq3p::in::faqz", "[io][in]", std::vector<char>)
 {   typedef TestType T;
     sq3p::sq_gen<T> s;
     CHECK_THROWS_AS
