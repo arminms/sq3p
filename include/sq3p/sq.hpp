@@ -249,13 +249,15 @@ public:
     }
 };
 
-// -- stream i/o operators -----------------------------------------------------
+// -- i/o stream operators -----------------------------------------------------
 
-    std::ostream& operator<< (std::ostream& os, const sq3p::sq& s)
+    template<typename T>
+    std::ostream& operator<< (std::ostream& os, const sq_gen<T>& s)
     {   s.print(os);
         return os;
     }
-    std::istream& operator>> (std::istream& is, sq3p::sq& s)
+    template<typename T>
+    std::istream& operator>> (std::istream& is, sq_gen<T>& s)
     {   s.scan(is);
         return is;
     }
