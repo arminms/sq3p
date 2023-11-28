@@ -29,6 +29,8 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     sq3p::sq_gen<T> s{"ACGT"};
     s["test-int"] = -33;
 
+// -- comparison operators -----------------------------------------------------
+
     SECTION( "comparison operators" )
     {   REQUIRE(  s == sq3p::sq_gen<T>("ACGT") );
         REQUIRE(!(s == sq3p::sq_gen<T>("acgt")));
@@ -36,7 +38,8 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         REQUIRE(!(s != sq3p::sq_gen<T>("ACGT")));
     }
 
-    // constructors
+// -- constructors -------------------------------------------------------------
+
     SECTION( "single value constructor" )
     {   sq3p::sq_gen<T> a4(4);
         CHECK(a4 == sq3p::sq_gen<T>("AAAA"));
@@ -64,7 +67,8 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(c == s);
     }
 
-    // copy assignment operators
+// -- copy assignment operators ------------------------------------------------
+
     SECTION( "copy assignment operator" )
     {   sq3p::sq_gen<T> c = s;
         CHECK(c == s);
@@ -79,7 +83,56 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(c == s);
     }
 
-    // capacity
+// -- iterators ----------------------------------------------------------------
+
+    SECTION( "begin/end" )
+    {   sq3p::sq_gen<T> t(4);
+        for (auto a : t)
+            CHECK(a == 'A');
+        for (auto& a : t)
+            a = 'T';
+        CHECK(t == sq3p::sq_gen<T>(4, 'T'));
+        for
+        (   auto t_it = t.begin(), s_it = s.cbegin()
+        ;   t_it != t.end()
+        ;   ++t_it, ++s_it
+        )
+            *t_it = *s_it;
+        CHECK(t == sq3p::sq_gen<T>("ACGT"));
+    }
+    SECTION( "cbegin/cend" )
+    {   const sq3p::sq_gen<T> t(4);
+        for
+        (   auto t_it = t.cbegin(), s_it = s.begin()
+        ;   t_it != t.cend()
+        ;   ++t_it, ++s_it
+        )
+            *s_it = *t_it;
+        CHECK(s == sq3p::sq_gen<T>("AAAA"));
+    }
+    SECTION( "rbegin/rend" )
+    {   sq3p::sq_gen<T> t(4);
+        for
+        (   auto t_it = t.rbegin(), s_it = s.cbegin()
+        ;   t_it != t.rend()
+        ;   ++t_it, ++s_it
+        )
+            *t_it = *s_it;
+        CHECK(t == sq3p::sq_gen<T>("TGCA"));
+    }
+    SECTION( "crbegin/crend" )
+    {   const sq3p::sq_gen<T> t("ACGT");
+        for
+        (   auto t_it = t.crbegin(), s_it = s.begin()
+        ;   t_it != t.crend()
+        ;   ++t_it, ++s_it
+        )
+            *s_it = *t_it;
+        CHECK(s == sq3p::sq_gen<T>("TGCA"));
+    }
+
+// -- capacity -----------------------------------------------------------------
+
     SECTION( "empty()" )
     {   sq3p::sq_gen<T> e;
         CHECK( e.empty() );
@@ -91,6 +144,8 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(4 == s.size());
     }
 
+// -- subscript operator -------------------------------------------------------
+
     SECTION( "subscript/array index operator" )
     {   CHECK('A' == s[0]);
         CHECK('C' == s[1]);
@@ -100,6 +155,8 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK('U' == s[3]);
     }
 
+// -- subseq operator ----------------------------------------------------------
+
     SECTION( "subseq operator" )
     {   sq3p::sq_gen<T> org{"CCATACGTGAC"};
         CHECK(org(4, 4) == s);
@@ -107,6 +164,8 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(org(4) == sq3p::sq_gen<T>{"ACGTGAC"});
         CHECK_THROWS_AS(org(20) == sq3p::sq_gen<T>{"ACGTGAC"}, std::out_of_range);
     }
+
+// -- managing tagged data -----------------------------------------------------
 
     SECTION( "tagged data" )
     {   CHECK(s.has("test-int"));
@@ -134,7 +193,9 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(v == std::any_cast<std::vector<int>>(s["vector_int"]));
     }
 
-    SECTION( "input/output operators")
+// -- i/o operators ------------------------------------------------------------
+
+    SECTION( "i/o operators")
     {   s["test-void"] = {};
         s["test-bool"] = true;
         s["test-unsigned"] = 33u;
@@ -159,6 +220,8 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         CHECK(std::any_cast<std::string>(s["test-string"]) == std::any_cast<std::string>(t["test-string"]));
         CHECK(4 == std::any_cast<std::vector<int>>(s["test-vector-int"]).size());
     }
+
+// -- string literal operator --------------------------------------------------
 
     SECTION( "string literal operator" )
     {   auto t = "ACGT"_sq;

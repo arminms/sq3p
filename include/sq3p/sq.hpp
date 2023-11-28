@@ -96,6 +96,69 @@ public:
         return *this;
     }
 
+// -- iterators ----------------------------------------------------------------
+
+    ///
+    /// Returns a read/write iterator that points to the first residue in the
+    /// @a sq. Iteration is done in ordinary residue order.
+    iterator begin() noexcept
+    {   return _sq.begin();   }
+    ///
+    /// Returns a read-only (constant) iterator that points to the first
+    /// residue in the @a sq. Iteration is done in ordinary residue order.
+    const_iterator begin() const noexcept
+    {   return _sq.begin();   }
+    ///
+    /// Returns a read-only (constant) iterator that points to the first
+    /// residue in the @a sq. Iteration is done in ordinary residue order.
+    const_iterator cbegin() const noexcept
+    {   return _sq.cbegin();   }
+    ///
+    /// Returns a read/write iterator that points one past the last residue in
+    /// the @a sq. Iteration is done in ordinary residue order.
+    iterator end() noexcept
+    {   return _sq.end();   }
+    ///
+    /// Returns a read-only (constant) iterator that points one past the last
+    /// residue in the @a sq. Iteration is done in ordinary residue order.
+    const_iterator end() const noexcept
+    {   return _sq.end();   }
+    ///
+    /// Returns a read-only (constant) iterator that points one past the last
+    /// residue in the @a sq. Iteration is done in ordinary residue order.
+    const_iterator cend() const noexcept
+    {   return _sq.cend();   }
+    ///
+    /// Returns a read/write iterator that points to the last residue in the
+    /// @a sq. Iteration is done in reverse residue order.
+    reverse_iterator rbegin() noexcept
+    {   return _sq.rbegin();   }
+    ///
+    /// Returns a read-only (constant) iterator that points to the last residue
+    /// in the @a sq. Iteration is done in reverse residue order.
+    const_reverse_iterator rbegin() const noexcept
+    {   return _sq.rbegin();   }
+    ///
+    /// Returns a read-only (constant) iterator that points to the last residue
+    /// in the @a sq. Iteration is done in reverse residue order.
+    const_reverse_iterator crbegin() const noexcept
+    {   return _sq.crbegin();   }
+    ///
+    /// Returns a read/write iterator that points to one before the first
+    /// residue in the @a sq. Iteration is done in reverse residue order.
+    reverse_iterator rend() noexcept
+    {   return _sq.rend();   }
+    ///
+    /// Returns a read-only (constant) iterator that points to one before the
+    /// first residue in the @a sq. Iteration is done in reverse residue order.
+    const_reverse_iterator rend() const noexcept
+    {   return _sq.rend();   }
+    ///
+    /// Returns a read-only (constant) iterator that points to one before the
+    /// first residue in the @a sq. Iteration is done in reverse residue order.
+    const_reverse_iterator crend() const noexcept
+    {   return _sq.crend();   }
+
 // -- capacity -----------------------------------------------------------------
 
     /// Returns true if the @a sq is empty. (Thus begin() would equal end().)
@@ -104,32 +167,12 @@ public:
     size_type size() const noexcept
     {   return _sq.size();   }
 
-// -- managing tagged data -----------------------------------------------------
-
-    bool has(std::string tag) const
-    {   return _td.find(tag) == _td.end() ? false : true;  }
-    std::any& operator[] (const std::string& tag)
-    {   return _td[tag];   }
-    std::any& operator[] (std::string&& tag)
-    {   return _td[std::forward<std::string>(tag)];   }
-
 // -- subscript operator -------------------------------------------------------
 
     reference operator[] (size_type pos)
     {   return _sq[pos];   }
     const_reference operator[] (size_type pos) const
     {   return _sq[pos];   }
-
-// -- comparison operators -----------------------------------------------------
-
-    template<typename Container1, typename Container2>
-    friend
-    bool operator== (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
-    {   return lhs._sq == rhs._sq;   }
-    template<typename Container1, typename Container2>
-    friend
-    bool operator!= (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
-    {   return lhs._sq != rhs._sq;   }
 
 // -- subseq operator ----------------------------------------------------------
 
@@ -141,6 +184,26 @@ public:
         ,   (count > _sq.size() - pos) ? _sq.end() : _sq.begin() + pos + count
         );
     }
+
+// -- managing tagged data -----------------------------------------------------
+
+    bool has(std::string tag) const
+    {   return _td.find(tag) == _td.end() ? false : true;  }
+    std::any& operator[] (const std::string& tag)
+    {   return _td[tag];   }
+    std::any& operator[] (std::string&& tag)
+    {   return _td[std::forward<std::string>(tag)];   }
+
+// -- comparison operators -----------------------------------------------------
+
+    template<typename Container1, typename Container2>
+    friend
+    bool operator== (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
+    {   return lhs._sq == rhs._sq;   }
+    template<typename Container1, typename Container2>
+    friend
+    bool operator!= (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
+    {   return lhs._sq != rhs._sq;   }
 
 // -- file i/o -----------------------------------------------------------------
 
@@ -186,21 +249,24 @@ public:
     }
 };
 
+    ///
     /// A sequence of @a char
     using sq = sq_gen<std::vector<char>>;
 
+}   // end sq3p namespace
+
 // -- stream i/o operators -----------------------------------------------------
 
-    std::ostream& operator<< (std::ostream& os, const sq& s)
+    std::ostream& operator<< (std::ostream& os, const sq3p::sq& s)
     {   s.print(os);
         return os;
     }
-    std::istream& operator>> (std::istream& is, sq& s)
+    std::istream& operator>> (std::istream& is, sq3p::sq& s)
     {   s.scan(is);
         return is;
     }
 
-}   // end sq3p namespace
+// -- string literal operator --------------------------------------------------
 
     sq3p::sq operator""_sq (const char* str, std::size_t len)
     {   return sq3p::sq(str);   }
