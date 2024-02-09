@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2023 Armin Sobhani
+# Copyright (c) 2023-24 Armin Sobhani
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
 #
 cmake_minimum_required(VERSION 3.14...3.26)
 
-## detect if sq3p is being bundled, disable installations in that case
+## detect if sq3p is being bundled, disable unit tests in that case
 #
 if(NOT DEFINED PROJECT_NAME)
   set(NOT_SUBPROJECT ON)
@@ -31,7 +31,7 @@ endif()
 
 ## life is about choices...
 #
-option(SQ3P_ENABLE_TESTS "Enable the unit tests ?" ON)
+option(SQ3P_ENABLE_TESTS "Enable the unit tests with support for Jupyter?" ON)
 
 ## finally our project...
 #
@@ -71,60 +71,61 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
   SOVERSION ${sq3p_VERSION_MAJOR}
 )
 
-## only perform the installation when sq3p is not being used as a subproject
+## specifying the export name for the targets
+#
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}-targets
+)
+
+## installing sq3p header files
+#
+add_subdirectory(include)
+
+## installing sq3p export target file
+#
+install(
+  EXPORT ${PROJECT_NAME}-targets
+  FILE ${PROJECT_NAME}-targets.cmake
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+## generate the config file that includes the exports
+#
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+## creating version file
+#
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+  VERSION "${sq3p_VERSION_MAJOR}.${sq3p_VERSION_MINOR}"
+  COMPATIBILITY AnyNewerVersion
+)
+
+## installing sq3p export config files
+#
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+## make export target available from the build tree
+#
+export(EXPORT ${PROJECT_NAME}-targets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake"
+  NAMESPACE ${PROJECT_NAME}::
+)
+
+## include unit tests only when sq3p is not being used as a subproject
 #
 if (NOT_SUBPROJECT)
-  ## specifying the export name for the targets
-  #
-  install(
-    TARGETS ${PROJECT_NAME}
-    EXPORT ${PROJECT_NAME}-targets
-  )
-
-  ## installing sq3p header files
-  #
-  add_subdirectory(include)
-
-  ## installing sq3p export target file
-  #
-  install(
-    EXPORT ${PROJECT_NAME}-targets
-    FILE ${PROJECT_NAME}-targets.cmake
-    NAMESPACE ${PROJECT_NAME}::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-  )
-
-  ## generate the config file that includes the exports
-  #
-  include(CMakePackageConfigHelpers)
-  configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-  )
-
-  ## creating version file
-  #
-  write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
-    VERSION "${sq3p_VERSION_MAJOR}.${sq3p_VERSION_MINOR}"
-    COMPATIBILITY AnyNewerVersion
-  )
-
-  ## installing sq3p export config files
-  #
-  install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-  )
-
-  ## make export target available from the build tree
-  #
-  export(EXPORT ${PROJECT_NAME}-targets
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake"
-    NAMESPACE ${PROJECT_NAME}::
-  )
 
   ## add unit tests
   #
@@ -139,7 +140,7 @@ if (NOT_SUBPROJECT)
         FetchContent_Declare(
           catch2
           GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-          GIT_TAG        v3.4.0
+          GIT_TAG        v3.5.2
         )
         FetchContent_MakeAvailable(Catch2)
         list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
