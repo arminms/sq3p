@@ -57,12 +57,28 @@ include(FetchContent)
 #
 find_package(ZLIB REQUIRED)
 
+## check for g3p
+#
+find_package(
+  g3p CONFIG
+  HINTS $ENV{HOME} $ENV{HOME}/.local /usr/local /opt/local /opt
+)
+if(NOT g3p_FOUND)
+    message(STATUS "Fetching g3p library...")
+    FetchContent_Declare(
+      g3p
+      GIT_REPOSITORY https://github.com/arminms/g3p.git
+      GIT_TAG        main
+    )
+    FetchContent_MakeAvailable(g3p)
+endif()
+
 ## defining sq3p target
 #
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
-target_link_libraries(${PROJECT_NAME} INTERFACE ZLIB::ZLIB)
+target_link_libraries(${PROJECT_NAME} INTERFACE ZLIB::ZLIB g3p::g3p)
 target_include_directories(${PROJECT_NAME} INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
