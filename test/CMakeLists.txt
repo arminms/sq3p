@@ -6,7 +6,7 @@ FetchContent_Declare(
   URL_HASH MD5=599418042b774c4e200406d290f4a863
   DOWNLOAD_NO_EXTRACT TRUE
 )
-FetchContent_Populate(sample_genome)
+FetchContent_MakeAvailable(sample_genome)
 
 ## add path for unit tests
 #
