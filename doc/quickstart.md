@@ -13,20 +13,20 @@ kernelspec:
 ---
 
 ```{code-cell} cpp
-#pragma cling add_include_path("/home/armin/src/sq3p/include")
+#pragma cling add_include_path("/home/armin/src/gynx/include")
 #pragma cling add_include_path("/home/armin/src/g3p/include")
 
 #include <fstream>
 
 #include <g3p/gnuplot>
-#include <sq3p/sq.hpp>
-#include <sq3p/io/faqz.hpp>
+#include <gynx/sq.hpp>
+#include <gynx/io/faqz.hpp>
 ```
 
 Making a biological sequence in Gynx is easy:
 
 ```{code-cell} cpp
-sq3p::sq s{"ACGT"};
+gynx::sq s{"ACGT"};
 ```
 Or even easier like this:
 ```{code-cell} cpp
@@ -39,13 +39,13 @@ It's also easy to load from compressed/uncompressed fasta/fastq files. First let
 ```
 +++
 ```{code-cell} cpp
-sq3p::sq plasmid;
-plasmid.load("GCF_000204255.1_ASM20425v1_genomic.fna.gz", "NC_017288.1", sq3p::in::faqz());
+gynx::sq plasmid;
+plasmid.load("GCF_000204255.1_ASM20425v1_genomic.fna.gz", "NC_017288.1", gynx::in::faqz());
 (7553 == std::size(plasmid))
 ```
 +++
 ```{code-cell} cpp
-sq3p::sq plot = plasmid(0, 500);
+gynx::sq plot = plasmid(0, 500);
 // g3p::gnuplot gp("test.log");
 g3p::gnuplot gp;
 
@@ -114,7 +114,7 @@ std::cout << plasmid;
 ```
 +++
 ```{code-cell} cpp
-sq3p::sq s{"ACGT"};
+gynx::sq s{"ACGT"};
 s["test"] = 33;
 // std::cout << s;
 s
@@ -123,7 +123,7 @@ s
 ```{code-cell} cpp
 std::stringstream ss;
 ss << s;
-sq3p::sq t;
+gynx::sq t;
 ss >> t;
 (s == t)
 ```
@@ -135,22 +135,22 @@ std::cout << t;
 ```{code-cell} cpp
 std::stringstream ss;
 ss << plasmid;
-sq3p::sq p;
+gynx::sq p;
 ss >> p;
 (p == plasmid)
 ```
 +++
 ```{code-cell} cpp
-sq3p::sq s{"ACGT"};
+gynx::sq s{"ACGT"};
 s["test"] = 33;
 s["test2"] = 1.33f; 
-std::ofstream os("test.sq3p");
+std::ofstream os("test.gynx");
 os << s;
 os.close();
 ```
 +++
 ```{code-cell} cpp
-sq3p::sq s{"ACGT"};
+gynx::sq s{"ACGT"};
 s["test"] = 33;
 s["test-void"] = {};
 s["test-bool"] = true;
@@ -162,7 +162,7 @@ std::cout << s;
 ```{code-cell} cpp
 std::stringstream ss;
 ss << s;
-sq3p::sq t;
+gynx::sq t;
 ss >> t;
 std::cout << t;
 ```

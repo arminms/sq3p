@@ -32,7 +32,7 @@
 #include <functional>
 #include <any>
 
-namespace sq3p {
+namespace gynx {
 
 // -- make_td_print_visitor() --------------------------------------------------
 
@@ -166,6 +166,6 @@ inline void register_td_scan_visitor(std::string type, const F& f)
 {   td_scan_visitor.insert(std::make_pair(type, f));   }
 
 
-}   // end sq3p namespace
+}   // end gynx namespace
 
 #endif  //_SQ3P_VISITOR_HPP_

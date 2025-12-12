@@ -27,9 +27,9 @@
 #include <initializer_list>
 #include <stdexcept>
 
-#include <sq3p/visitor.hpp>
+#include <gynx/visitor.hpp>
 
-namespace sq3p {
+namespace gynx {
 
 template <typename Container>
 class sq_gen
@@ -178,7 +178,7 @@ public:
 
     sq_gen operator() (size_type pos, size_type count = std::string::npos) const
     {   if (pos > _sq.size())
-            throw std::out_of_range("sq3p::sq: pos > this->size()");
+            throw std::out_of_range("gynx::sq: pos > this->size()");
         return sq_gen
         (   _sq.begin() + pos
         ,   (count > _sq.size() - pos) ? _sq.end() : _sq.begin() + pos + count
@@ -243,7 +243,7 @@ public:
             )
                 it->second(is, a);
             else
-                throw std::runtime_error("sq3p::sq: unregistered type -> " + type);
+                throw std::runtime_error("gynx::sq: unregistered type -> " + type);
             _td[tag] = a;
         }
     }
@@ -266,11 +266,11 @@ public:
     /// A sequence of @a char
     using sq = sq_gen<std::vector<char>>;
 
-}   // end sq3p namespace
+}   // end gynx namespace
 
 // -- string literal operator --------------------------------------------------
 
-    sq3p::sq operator""_sq (const char* str, std::size_t len)
-    {   return sq3p::sq(str);   }
+    gynx::sq operator""_sq (const char* str, std::size_t len)
+    {   return gynx::sq(str);   }
 
 #endif  //_SQ3P_SQ_HPP_

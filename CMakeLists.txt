@@ -21,7 +21,7 @@
 #
 cmake_minimum_required(VERSION 3.18...3.26)
 
-## detect if sq3p is being bundled, disable unit tests in that case
+## detect if gynx is being bundled, disable unit tests in that case
 #
 if(NOT DEFINED PROJECT_NAME)
   set(NOT_SUBPROJECT ON)
@@ -36,7 +36,7 @@ option(SQ3P_ENABLE_TESTS "Enable the unit tests with support for Jupyter?" ON)
 ## finally our project...
 #
 project(
-  sq3p
+  gynx
   VERSION 0.1.0
   LANGUAGES CXX
   DESCRIPTION "Biological sequences for Modern C++"
@@ -73,7 +73,7 @@ if(NOT g3p_FOUND)
     FetchContent_MakeAvailable(g3p)
 endif()
 
-## defining sq3p target
+## defining gynx target
 #
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
@@ -84,8 +84,8 @@ target_include_directories(${PROJECT_NAME} INTERFACE
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES
-  VERSION ${sq3p_VERSION}
-  SOVERSION ${sq3p_VERSION_MAJOR}
+  VERSION ${gynx_VERSION}
+  SOVERSION ${gynx_VERSION_MAJOR}
 )
 
 ## specifying the export name for the targets
@@ -95,11 +95,11 @@ install(
   EXPORT ${PROJECT_NAME}-targets
 )
 
-## installing sq3p header files
+## installing gynx header files
 #
 add_subdirectory(include)
 
-## installing sq3p export target file
+## installing gynx export target file
 #
 install(
   EXPORT ${PROJECT_NAME}-targets
@@ -121,11 +121,11 @@ configure_package_config_file(
 #
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
-  VERSION "${sq3p_VERSION_MAJOR}.${sq3p_VERSION_MINOR}"
+  VERSION "${gynx_VERSION_MAJOR}.${gynx_VERSION_MINOR}"
   COMPATIBILITY AnyNewerVersion
 )
 
-## installing sq3p export config files
+## installing gynx export config files
 #
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
@@ -140,7 +140,7 @@ export(EXPORT ${PROJECT_NAME}-targets
   NAMESPACE ${PROJECT_NAME}::
 )
 
-## include unit tests only when sq3p is not being used as a subproject
+## include unit tests only when gynx is not being used as a subproject
 #
 if (NOT_SUBPROJECT)
 

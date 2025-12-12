@@ -23,16 +23,16 @@
 #define _SQ3P_IO_FAQZ_HPP_
 
 #include <zlib.h>
-#include <sq3p/io/kseq.h>
+#include <gynx/io/kseq.h>
 
-namespace sq3p::in {
+namespace gynx::in {
 
 KSEQ_INIT(gzFile, gzread)
 
 template <typename Container>
 struct faqz_gen
 {   bool operator()
-    (   sq3p::sq_gen<Container>& s
+    (   gynx::sq_gen<Container>& s
     ,   std::string filename
     ,   std::string id) const
     {   gzFile fp = filename == "-"
@@ -40,12 +40,12 @@ struct faqz_gen
         :   gzopen(filename.c_str(), "r");
         if (nullptr == fp)
             throw std::runtime_error
-                ("sq3p::faqz: could not open file -> " + filename);
+                ("gynx::faqz: could not open file -> " + filename);
         kseq_t* seq = kseq_init(fp);
         while (kseq_read(seq) >= 0)
         {   std::string name(seq->name.s);
             if (name == id)
-            {   sq3p::sq_gen<Container> in(seq->seq.s);
+            {   gynx::sq_gen<Container> in(seq->seq.s);
                 in["_id"] = name;
                 if (seq->qual.l)
                     in["_qs"] = std::string(seq->qual.s);
@@ -63,6 +63,6 @@ struct faqz_gen
 
     using faqz = faqz_gen<std::vector<char>>;
 
-}   // end sq3p::in namespace
+}   // end gynx::in namespace
 
 #endif  //_SQ3P_IO_FAQZ_HPP_

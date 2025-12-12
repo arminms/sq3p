@@ -21,77 +21,77 @@
 //
 #include <catch2/catch_all.hpp>
 
-#include <sq3p/sq.hpp>
-#include <sq3p/io/faqz.hpp>
+#include <gynx/sq.hpp>
+#include <gynx/io/faqz.hpp>
 
-TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
+TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
-    sq3p::sq_gen<T> s{"ACGT"};
+    gynx::sq_gen<T> s{"ACGT"};
     s["test-int"] = -33;
 
 // -- comparison operators -----------------------------------------------------
 
     SECTION( "comparison operators" )
-    {   REQUIRE(  s == sq3p::sq_gen<T>("ACGT") );
-        REQUIRE(!(s == sq3p::sq_gen<T>("acgt")));
-        REQUIRE(  s != sq3p::sq_gen<T>("acgt") );
-        REQUIRE(!(s != sq3p::sq_gen<T>("ACGT")));
+    {   REQUIRE(  s == gynx::sq_gen<T>("ACGT") );
+        REQUIRE(!(s == gynx::sq_gen<T>("acgt")));
+        REQUIRE(  s != gynx::sq_gen<T>("acgt") );
+        REQUIRE(!(s != gynx::sq_gen<T>("ACGT")));
     }
 
 // -- constructors -------------------------------------------------------------
 
     SECTION( "single value constructor" )
-    {   sq3p::sq_gen<T> a4(4);
-        CHECK(a4 == sq3p::sq_gen<T>("AAAA"));
-        sq3p::sq_gen<T> c4(4, 'C');
-        CHECK(c4 == sq3p::sq_gen<T>("CCCC"));
+    {   gynx::sq_gen<T> a4(4);
+        CHECK(a4 == gynx::sq_gen<T>("AAAA"));
+        gynx::sq_gen<T> c4(4, 'C');
+        CHECK(c4 == gynx::sq_gen<T>("CCCC"));
     }
     SECTION( "iterator constructor" )
     {   std::string acgt{"ACGT"};
-        sq3p::sq_gen<T> c(std::begin(acgt), std::end(acgt));
+        gynx::sq_gen<T> c(std::begin(acgt), std::end(acgt));
         CHECK(s == c);
     }
     SECTION( "copy constructor" )
-    {   sq3p::sq_gen<T> c(s);
+    {   gynx::sq_gen<T> c(s);
         CHECK(c == s);
         CHECK(-33 == std::any_cast<int>(c["test-int"]));
     }
     SECTION( "move constructor" )
-    {   sq3p::sq_gen<T> m(std::move(s));
+    {   gynx::sq_gen<T> m(std::move(s));
         CHECK(s.empty());
-        CHECK(m == sq3p::sq_gen<T>("ACGT"));
+        CHECK(m == gynx::sq_gen<T>("ACGT"));
         CHECK(-33 == std::any_cast<int>(m["test-int"]));
     }
     SECTION( "initializer list" )
-    {   sq3p::sq_gen<T> c{'A', 'C', 'G', 'T'};
+    {   gynx::sq_gen<T> c{'A', 'C', 'G', 'T'};
         CHECK(c == s);
     }
 
 // -- copy assignment operators ------------------------------------------------
 
     SECTION( "copy assignment operator" )
-    {   sq3p::sq_gen<T> c = s;
+    {   gynx::sq_gen<T> c = s;
         CHECK(c == s);
         CHECK(-33 == std::any_cast<int>(c["test-int"]));
     }
     SECTION( "move constructor" )
-    {   sq3p::sq_gen<T> m = sq3p::sq_gen<T>("ACGT");
+    {   gynx::sq_gen<T> m = gynx::sq_gen<T>("ACGT");
         CHECK(m == s);
     }
     SECTION( "initializer list" )
-    {   sq3p::sq_gen<T> c = {'A', 'C', 'G', 'T'};
+    {   gynx::sq_gen<T> c = {'A', 'C', 'G', 'T'};
         CHECK(c == s);
     }
 
 // -- iterators ----------------------------------------------------------------
 
     SECTION( "begin/end" )
-    {   sq3p::sq_gen<T> t(4);
+    {   gynx::sq_gen<T> t(4);
         for (auto a : t)
             CHECK(a == 'A');
         for (auto& a : t)
             a = 'T';
-        CHECK(t == sq3p::sq_gen<T>(4, 'T'));
+        CHECK(t == gynx::sq_gen<T>(4, 'T'));
         auto s_it = s.cbegin();
         for
         (   auto t_it = t.begin()
@@ -99,10 +99,10 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         ;   ++t_it, ++s_it
         )
             *t_it = *s_it;
-        CHECK(t == sq3p::sq_gen<T>("ACGT"));
+        CHECK(t == gynx::sq_gen<T>("ACGT"));
     }
     SECTION( "cbegin/cend" )
-    {   const sq3p::sq_gen<T> t(4);
+    {   const gynx::sq_gen<T> t(4);
         auto s_it = s.begin();
         for
         (   auto t_it = t.cbegin()
@@ -110,10 +110,10 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         ;   ++t_it, ++s_it
         )
             *s_it = *t_it;
-        CHECK(s == sq3p::sq_gen<T>("AAAA"));
+        CHECK(s == gynx::sq_gen<T>("AAAA"));
     }
     SECTION( "rbegin/rend" )
-    {   sq3p::sq_gen<T> t(4);
+    {   gynx::sq_gen<T> t(4);
         auto s_it = s.cbegin();
         for
         (   auto t_it = t.rbegin()
@@ -121,10 +121,10 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         ;   ++t_it, ++s_it
         )
             *t_it = *s_it;
-        CHECK(t == sq3p::sq_gen<T>("TGCA"));
+        CHECK(t == gynx::sq_gen<T>("TGCA"));
     }
     SECTION( "crbegin/crend" )
-    {   const sq3p::sq_gen<T> t("ACGT");
+    {   const gynx::sq_gen<T> t("ACGT");
         auto s_it = s.begin();
         for
         (   auto t_it = t.crbegin()
@@ -132,18 +132,18 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
         ;   ++t_it, ++s_it
         )
             *s_it = *t_it;
-        CHECK(s == sq3p::sq_gen<T>("TGCA"));
+        CHECK(s == gynx::sq_gen<T>("TGCA"));
     }
 
 // -- capacity -----------------------------------------------------------------
 
     SECTION( "empty()" )
-    {   sq3p::sq_gen<T> e;
+    {   gynx::sq_gen<T> e;
         CHECK( e.empty() );
         CHECK(!s.empty() );
     }
     SECTION( "size()" )
-    {   sq3p::sq_gen<T> e;
+    {   gynx::sq_gen<T> e;
         CHECK(0 == e.size());
         CHECK(4 == s.size());
     }
@@ -162,11 +162,11 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
 // -- subseq operator ----------------------------------------------------------
 
     SECTION( "subseq operator" )
-    {   sq3p::sq_gen<T> org{"CCATACGTGAC"};
+    {   gynx::sq_gen<T> org{"CCATACGTGAC"};
         CHECK(org(4, 4) == s);
         CHECK(org(0) == org);
-        CHECK(org(4) == sq3p::sq_gen<T>{"ACGTGAC"});
-        CHECK_THROWS_AS(org(20) == sq3p::sq_gen<T>{"ACGTGAC"}, std::out_of_range);
+        CHECK(org(4) == gynx::sq_gen<T>{"ACGTGAC"});
+        CHECK_THROWS_AS(org(20) == gynx::sq_gen<T>{"ACGTGAC"}, std::out_of_range);
     }
 
 // -- managing tagged data -----------------------------------------------------
@@ -210,7 +210,7 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
 
         std::stringstream ss;
         ss << s;
-        sq3p::sq_gen<T> t;
+        gynx::sq_gen<T> t;
         ss >> t;
 
         CHECK(s == t);
@@ -234,18 +234,18 @@ TEMPLATE_TEST_CASE( "sq3p::sq", "[class]", std::vector<char>)
     }
 }
 
-TEMPLATE_TEST_CASE( "sq3p::in::faqz", "[io][in]", std::vector<char>)
+TEMPLATE_TEST_CASE( "gynx::in::faqz", "[io][in]", std::vector<char>)
 {   typedef TestType T;
-    sq3p::sq_gen<T> s;
+    gynx::sq_gen<T> s;
     CHECK_THROWS_AS
-    (   s.load("wrong.fa", "no_id", sq3p::in::faqz_gen<T>() )
+    (   s.load("wrong.fa", "no_id", gynx::in::faqz_gen<T>() )
     ,   std::runtime_error
     );
-    CHECK(false == s.load(SAMPLE_GENOME, "bad_id",sq3p::in::faqz_gen<T>()));
-    CHECK(s.load(SAMPLE_GENOME, "NC_017288.1",sq3p::in::faqz_gen<T>()));
+    CHECK(false == s.load(SAMPLE_GENOME, "bad_id",gynx::in::faqz_gen<T>()));
+    CHECK(s.load(SAMPLE_GENOME, "NC_017288.1",gynx::in::faqz_gen<T>()));
     CHECK(7553 == std::size(s));
-    CHECK(s(0, 10) == sq3p::sq_gen<T>{"TATAATTAAA"});
-    CHECK(s (7543) == sq3p::sq_gen<T>{"TCCAATTCTA"});
+    CHECK(s(0, 10) == gynx::sq_gen<T>{"TATAATTAAA"});
+    CHECK(s (7543) == gynx::sq_gen<T>{"TCCAATTCTA"});
     CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
     std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
     CHECK(desc == std::any_cast<std::string>(s["_desc"]));
