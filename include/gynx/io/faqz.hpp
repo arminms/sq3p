@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#ifndef _SQ3P_IO_FAQZ_HPP_
-#define _SQ3P_IO_FAQZ_HPP_
+#ifndef _GYNX_IO_FAQZ_HPP_
+#define _GYNX_IO_FAQZ_HPP_
 
 #include <zlib.h>
 #include <gynx/io/kseq.h>
@@ -65,4 +65,4 @@ struct faqz_gen
 
 }   // end gynx::in namespace
 
-#endif  //_SQ3P_IO_FAQZ_HPP_
+#endif  //_GYNX_IO_FAQZ_HPP_

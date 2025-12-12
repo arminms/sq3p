@@ -31,7 +31,7 @@ endif()
 
 ## life is about choices...
 #
-option(SQ3P_ENABLE_TESTS "Enable the unit tests with support for Jupyter?" ON)
+option(GYNX_ENABLE_TESTS "Enable the unit tests with support for Jupyter?" ON)
 
 ## finally our project...
 #
@@ -146,7 +146,7 @@ if (NOT_SUBPROJECT)
 
   ## add unit tests
   #
-  if(${SQ3P_ENABLE_TESTS})
+  if(${GYNX_ENABLE_TESTS})
     enable_testing()
     find_package(
       Catch2 3

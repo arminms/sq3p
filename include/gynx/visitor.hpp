@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#ifndef _SQ3P_VISITOR_HPP_
-#define _SQ3P_VISITOR_HPP_
+#ifndef _GYNX_VISITOR_HPP_
+#define _GYNX_VISITOR_HPP_
 
 #include <iostream>
 #include <iomanip>
@@ -168,4 +168,4 @@ inline void register_td_scan_visitor(std::string type, const F& f)
 
 }   // end gynx namespace
 
-#endif  //_SQ3P_VISITOR_HPP_
+#endif  //_GYNX_VISITOR_HPP_

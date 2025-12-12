@@ -19,8 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#ifndef _SQ3P_SQ_HPP_
-#define _SQ3P_SQ_HPP_
+#ifndef _GYNX_SQ_HPP_
+#define _GYNX_SQ_HPP_
 
 #include <sstream>
 #include <algorithm>
@@ -273,4 +273,4 @@ public:
     gynx::sq operator""_sq (const char* str, std::size_t len)
     {   return gynx::sq(str);   }
 
-#endif  //_SQ3P_SQ_HPP_
+#endif  //_GYNX_SQ_HPP_
