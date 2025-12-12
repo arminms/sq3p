@@ -68,7 +68,7 @@ if(NOT g3p_FOUND)
     FetchContent_Declare(
       g3p
       GIT_REPOSITORY https://github.com/arminms/g3p.git
-      GIT_TAG        main
+      GIT_TAG        v1.2.0
     )
     FetchContent_MakeAvailable(g3p)
 endif()
