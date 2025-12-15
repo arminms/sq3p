@@ -173,8 +173,24 @@ public:
     /// Returns true if the @a sq is empty. (Thus begin() would equal end().)
     bool empty() const noexcept
     {   return (_sq.empty() && (!_ptr_td || _ptr_td->empty()));   }
+    /// Returns the number of residues in the @a sq.
     size_type size() const noexcept
     {   return _sq.size();   }
+    /// Returns the size in memory (in bytes) used by the @a sq including its
+    /// tagged data.
+    size_type size_in_memory() const noexcept
+    {   size_type mem = sizeof(Container) + (_sq.capacity() * sizeof(value_type));
+        if (_ptr_td)
+        {   mem += sizeof(Map);
+            for (const auto& [tag, data] : *_ptr_td)
+            {   mem += tag.capacity() * sizeof(char);
+                // Note: estimating size of std::any content is not straightforward.
+                // Here we just add sizeof of the contained type as a rough estimate.
+                mem += data.has_value() ? sizeof(data.type()) : 0;
+            }
+        }
+        return mem;
+    }
 
 // -- subscript operator -------------------------------------------------------
 
