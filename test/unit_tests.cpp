@@ -139,8 +139,10 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
 
     SECTION( "empty()" )
     {   gynx::sq_gen<T> e;
-        CHECK( e.empty() );
-        CHECK(!s.empty() );
+        CHECK(e.empty());
+        e["test"] = 1;
+        CHECK(!e.empty());
+        CHECK(!s.empty());
     }
     SECTION( "size()" )
     {   gynx::sq_gen<T> e;
