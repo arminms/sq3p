@@ -79,7 +79,7 @@ public:
     :   _sq(other._sq)
     ,   _ptr_td(other._ptr_td ? std::make_unique<Map>(*other._ptr_td) : nullptr)
     {}
-    sq_gen(sq_gen&& other)
+    sq_gen(sq_gen&& other) noexcept
     :   _sq(std::move(other._sq))
     ,   _ptr_td(std::move(other._ptr_td))
     {}
