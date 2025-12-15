@@ -197,6 +197,11 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
         s["vector_int"] = v;
         CHECK(s.has("vector_int"));
         CHECK(v == std::any_cast<std::vector<int>>(s["vector_int"]));
+
+        std::string lvalue_tag{"check_lvalue_tag"};
+        s[lvalue_tag] = 42;
+        CHECK(s.has(lvalue_tag));
+        CHECK(42 == std::any_cast<int>(s[lvalue_tag]));
     }
 
 // -- i/o operators ------------------------------------------------------------

@@ -27,6 +27,7 @@
 #include <initializer_list>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <unordered_map>
 #include <any>
@@ -62,7 +63,7 @@ public:
     :   _sq()
     ,   _ptr_td()
     {}
-    explicit sq_gen(std::string sq)
+    explicit sq_gen(std::string_view sq)
     :   _sq(std::begin(sq), std::end(sq))
     ,   _ptr_td()
     {}
@@ -212,8 +213,15 @@ public:
 
 // -- managing tagged data -----------------------------------------------------
 
-    bool has(std::string tag) const
-    {   return (_ptr_td ? _ptr_td->find(tag) == _ptr_td->end() ? false : true : false);  }
+    bool has(std::string_view tag) const
+    {   return
+        (   _ptr_td
+        ?   _ptr_td->find(std::string(tag)) == _ptr_td->end()
+        ?   false
+        :   true
+        :   false
+        );
+    }
     std::any& operator[] (const std::string& tag)
     {   if (!_ptr_td) _ptr_td = std::make_unique<Map>();
         return (*_ptr_td)[tag];
@@ -237,7 +245,7 @@ public:
 // -- file i/o -----------------------------------------------------------------
 
     template<template <class> class Format>
-    bool load(std::string filename, std::string id, Format<Container> f)
+    bool load(std::string_view filename, std::string_view id, Format<Container> f)
     {   return f(*this, filename, id);   }
 
     void print(std::ostream& os) const

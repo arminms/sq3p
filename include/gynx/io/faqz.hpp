@@ -33,14 +33,14 @@ template <typename Container>
 struct faqz_gen
 {   bool operator()
     (   gynx::sq_gen<Container>& s
-    ,   std::string filename
-    ,   std::string id) const
+    ,   std::string_view filename
+    ,   std::string_view id) const
     {   gzFile fp = filename == "-"
         ?   gzdopen(fileno(stdin), "r")
-        :   gzopen(filename.c_str(), "r");
+        :   gzopen(std::string(filename).c_str(), "r");
         if (nullptr == fp)
             throw std::runtime_error
-                ("gynx::faqz: could not open file -> " + filename);
+                ("gynx::faqz: could not open file -> " + std::string(filename));
         kseq_t* seq = kseq_init(fp);
         while (kseq_read(seq) >= 0)
         {   std::string name(seq->name.s);
