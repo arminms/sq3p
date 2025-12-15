@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2023 Armin Sobhani
+// Copyright (c) 2023-2025 Armin Sobhani
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +26,24 @@
 #include <algorithm>
 #include <initializer_list>
 #include <stdexcept>
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <any>
+#include <memory>
+#include <typeindex>
 
 #include <gynx/visitor.hpp>
 
 namespace gynx {
 
-template <typename Container>
+template
+<   typename Container
+,   typename Map = std::unordered_map<std::string, std::any>
+>
 class sq_gen
-{   Container                                 _sq;  // sequence
-    std::unordered_map<std::string, std::any> _td;  // tagged data
+{   Container                _sq;  // sequence
+    std::unique_ptr<Map> _ptr_td;  // pointer to tagged data
 
 public:
     using value_type = typename Container::value_type;
@@ -51,44 +60,44 @@ public:
 
     sq_gen() noexcept
     :   _sq()
-    ,   _td()
+    ,   _ptr_td()
     {}
     explicit sq_gen(std::string sq)
     :   _sq(std::begin(sq), std::end(sq))
-    ,   _td()
+    ,   _ptr_td()
     {}
     sq_gen(size_type count, const_reference value = value_type(65))
     :   _sq(count, value)
-    ,   _td()
+    ,   _ptr_td()
     {}
     template<typename InputIt>
     sq_gen(InputIt first, InputIt last)
     :   _sq(first, last)
-    ,   _td()
+    ,   _ptr_td()
     {}
     sq_gen(const sq_gen& other)
     :   _sq(other._sq)
-    ,   _td(other._td)
+    ,   _ptr_td(other._ptr_td ? std::make_unique<Map>(*other._ptr_td) : nullptr)
     {}
     sq_gen(sq_gen&& other)
     :   _sq(std::move(other._sq))
-    ,   _td(std::move(other._td))
+    ,   _ptr_td(std::move(other._ptr_td))
     {}
     sq_gen(std::initializer_list<value_type> init)
     :   _sq(init)
-    ,   _td()
+    ,   _ptr_td()
     {}
 
 // -- copy assignment operators ------------------------------------------------
 
     sq_gen& operator= (const sq_gen& other)
     {   _sq = other._sq;
-        _td = other._td;
+        _ptr_td = other._ptr_td;
         return *this;
     }
     sq_gen& operator= (sq_gen&& other)
     {   _sq = std::move(other._sq);
-        _td = std::move(other._td);
+        _ptr_td = std::move(other._ptr_td);
         return *this;
     }
     sq_gen& operator= (std::initializer_list<value_type> init)
@@ -163,7 +172,7 @@ public:
 
     /// Returns true if the @a sq is empty. (Thus begin() would equal end().)
     bool empty() const noexcept
-    {   return (_sq.empty() && _td.empty());   }
+    {   return (_sq.empty() && (!_ptr_td || _ptr_td->empty()));   }
     size_type size() const noexcept
     {   return _sq.size();   }
 
@@ -188,11 +197,15 @@ public:
 // -- managing tagged data -----------------------------------------------------
 
     bool has(std::string tag) const
-    {   return _td.find(tag) == _td.end() ? false : true;  }
+    {   return (_ptr_td ? _ptr_td->find(tag) == _ptr_td->end() ? false : true : false);  }
     std::any& operator[] (const std::string& tag)
-    {   return _td[tag];   }
+    {   if (!_ptr_td) _ptr_td = std::make_unique<Map>();
+        return (*_ptr_td)[tag];
+    }
     std::any& operator[] (std::string&& tag)
-    {   return _td[std::forward<std::string>(tag)];   }
+    {   if (!_ptr_td) _ptr_td = std::make_unique<Map>();
+        return (*_ptr_td)[std::move(tag)];
+    }
 
 // -- comparison operators -----------------------------------------------------
 
@@ -214,7 +227,8 @@ public:
     void print(std::ostream& os) const
     {   os << std::boolalpha << _sq.size();
         os.write(_sq.data(), _sq.size());
-        for (const auto& [tag, data] : _td)
+        if (! _ptr_td) return;
+        for (const auto& [tag, data] : *_ptr_td)
         {   os << std::quoted(tag, '#');
             if
             (   const auto it = td_print_visitor.find(std::type_index(data.type()))
@@ -232,6 +246,8 @@ public:
         is >> std::boolalpha >> n;
         _sq.resize(n);
         is.read(_sq.data(), n);
+        if (is.peek() == '#' && !_ptr_td)
+            _ptr_td = std::make_unique<Map>();
         while (is.peek() == '#')
         {   std::string tag, type;
             std::any a;
@@ -244,7 +260,7 @@ public:
                 it->second(is, a);
             else
                 throw std::runtime_error("gynx::sq: unregistered type -> " + type);
-            _td[tag] = a;
+            (*_ptr_td)[tag] = a;
         }
     }
 };
