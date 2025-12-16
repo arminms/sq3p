@@ -22,7 +22,7 @@
 #include <catch2/catch_all.hpp>
 
 #include <gynx/sq.hpp>
-#include <gynx/io/faqz.hpp>
+#include <gynx/io/fastaqz.hpp>
 
 TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
@@ -241,15 +241,23 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
     }
 }
 
-TEMPLATE_TEST_CASE( "gynx::in::faqz", "[io][in]", std::vector<char>)
+TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
 {   typedef TestType T;
-    gynx::sq_gen<T> s;
-    CHECK_THROWS_AS
-    (   s.load("wrong.fa", "no_id", gynx::in::faqz_gen<T>() )
+    // REQUIRE_THROWS_AS
+    // (   gynx::sq_gen<T>("wrong.fa", "no_id")
+    // ,   std::runtime_error
+    // );
+    // gynx::sq_gen<T> bad_id(SAMPLE_GENOME, "bad_id");
+    // CHECK(bad_id.empty());
+    // gynx::sq_gen<T> s(SAMPLE_GENOME, "NC_017288.1");
+    REQUIRE_THROWS_AS
+    (   gynx::sq_gen<T>("wrong.fa", 1)
     ,   std::runtime_error
     );
-    CHECK(false == s.load(SAMPLE_GENOME, "bad_id",gynx::in::faqz_gen<T>()));
-    CHECK(s.load(SAMPLE_GENOME, "NC_017288.1",gynx::in::faqz_gen<T>()));
+    gynx::sq_gen<T> bad_ndx(SAMPLE_GENOME, 3);
+    CHECK(bad_ndx.empty());
+    // gynx::sq_gen<T> s(SAMPLE_GENOME, "NC_017288.1");
+    gynx::sq_gen<T> s(SAMPLE_GENOME, 1);
     CHECK(7553 == std::size(s));
     CHECK(s(0, 10) == gynx::sq_gen<T>{"TATAATTAAA"});
     CHECK(s (7543) == gynx::sq_gen<T>{"TCCAATTCTA"});

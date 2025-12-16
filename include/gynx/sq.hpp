@@ -35,7 +35,7 @@
 #include <typeindex>
 
 #include <gynx/visitor.hpp>
-
+#include <gynx/io/fastaqz.hpp>
 namespace gynx {
 
 template
@@ -70,6 +70,20 @@ public:
     sq_gen(size_type count, const_reference value = value_type(65))
     :   _sq(count, value)
     ,   _ptr_td()
+    {}
+    sq_gen
+    (   std::string_view filename
+    ,   size_t ndx
+    ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
+    )
+    :   sq_gen(read(filename, ndx))
+    {}
+    sq_gen
+    (   std::string_view filename
+    ,   std::string_view id
+    ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
+    )
+    :   sq_gen(read(filename, id))
     {}
     template<typename InputIt>
     sq_gen(InputIt first, InputIt last)
@@ -243,10 +257,6 @@ public:
     {   return lhs._sq != rhs._sq;   }
 
 // -- file i/o -----------------------------------------------------------------
-
-    template<template <class> class Format>
-    bool load(std::string_view filename, std::string_view id, Format<Container> f)
-    {   return f(*this, filename, id);   }
 
     void print(std::ostream& os) const
     {   os << std::boolalpha << _sq.size();
