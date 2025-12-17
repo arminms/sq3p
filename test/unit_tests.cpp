@@ -298,12 +298,10 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
         CHECK(desc == std::any_cast<std::string>(s["_desc"]));
     }
     SECTION( "save fasta.gz" )
-    {   gynx::sq_gen<T> s;
-        s.load(SAMPLE_GENOME, 1);
+    {   gynx::sq_gen<T> s(SAMPLE_GENOME, 1);
         std::string filename = "test_output.fa.gz";
         s.save(filename, gynx::io::fasta_gz());
-        gynx::sq_gen<T> t;
-        t.load(filename, 0);
+        gynx::sq_gen<T> t(filename, 0);
         CHECK(s == t);
         std::remove(filename.c_str());
     }
