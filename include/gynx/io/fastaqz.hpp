@@ -42,20 +42,27 @@ struct fast_aqz
             throw std::runtime_error
                 ("gynx::fast_aqz: could not open file -> " + std::string(filename));
         kseq_t* seq = kseq_init(fp);
-        Sequence s;
         size_t count = 0;
-        while (kseq_read(seq) >= 0)
+        int r{};
+        while (r = kseq_read(seq) >= 0)
             if (ndx == count++)
-            {   s = Sequence(seq->seq.s);
-                s["_id"] = std::string(seq->name.s);
-                if (seq->qual.l)
-                    s["_qs"] = std::string(seq->qual.s);
-                if (seq->comment.l)
-                    s["_desc"] = std::string(seq->comment.s);
                 break;
-            }
+        Sequence s = (r > 0) ? Sequence(seq->seq.s) : Sequence();
+        if (r > 0)
+        {   s["_id"] = std::string(seq->name.s);
+            if (seq->qual.l)
+                s["_qs"] = std::string(seq->qual.s);
+            if (seq->comment.l)
+                s["_desc"] = std::string(seq->comment.s);
+        }
         kseq_destroy(seq);
         gzclose(fp);
+        if (-2 == r)
+            throw std::runtime_error
+                ("gynx::fast_aqz: truncated quality string in file -> " + std::string(filename));
+        if (-3 == r)
+            throw std::runtime_error
+                ("gynx::fast_aqz: error reading file -> " + std::string(filename)); 
         return s;
     }
     Sequence operator() (std::string_view filename, std::string_view id)
@@ -66,21 +73,28 @@ struct fast_aqz
             throw std::runtime_error
                 ("gynx::fast_aqz: could not open file -> " + std::string(filename));
         kseq_t* seq = kseq_init(fp);
-        Sequence s;
-        while (kseq_read(seq) >= 0)
-        {   std::string name(seq->name.s);
+        int r{};
+        while (r = kseq_read(seq) >= 0)
+        {   std::string_view name(seq->name.s);
             if (name == id)
-            {   s = Sequence(seq->seq.s);
-                s["_id"] = name;
-                if (seq->qual.l)
-                    s["_qs"] = std::string(seq->qual.s);
-                if (seq->comment.l)
-                    s["_desc"] = std::string(seq->comment.s);
                 break;
-            } 
+        }
+        Sequence s = (r > 0) ? Sequence(seq->seq.s) : Sequence();
+        if (r > 0)
+        {   s["_id"] = std::string(seq->name.s);
+            if (seq->qual.l)
+                s["_qs"] = std::string(seq->qual.s);
+            if (seq->comment.l)
+                s["_desc"] = std::string(seq->comment.s);
         }
         kseq_destroy(seq);
         gzclose(fp);
+        if (-2 == r)
+            throw std::runtime_error
+                ("gynx::fast_aqz: truncated quality string in file -> " + std::string(filename));
+        if (-3 == r)
+            throw std::runtime_error
+                ("gynx::fast_aqz: error reading file -> " + std::string(filename)); 
         return s;
     }
 };

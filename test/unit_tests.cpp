@@ -46,6 +46,11 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
         gynx::sq_gen<T> c4(4, 'C');
         CHECK(c4 == gynx::sq_gen<T>("CCCC"));
     }
+    SECTION( "from file constructor" )
+    {   gynx::sq_gen<T> s(SAMPLE_GENOME, 1);
+        CHECK(7553 == std::size(s));
+        CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
+    }
     SECTION( "iterator constructor" )
     {   std::string acgt{"ACGT"};
         gynx::sq_gen<T> c(std::begin(acgt), std::end(acgt));
@@ -243,25 +248,37 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
 
 TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
 {   typedef TestType T;
-    // REQUIRE_THROWS_AS
-    // (   gynx::sq_gen<T>("wrong.fa", "no_id")
-    // ,   std::runtime_error
-    // );
-    // gynx::sq_gen<T> bad_id(SAMPLE_GENOME, "bad_id");
-    // CHECK(bad_id.empty());
-    // gynx::sq_gen<T> s(SAMPLE_GENOME, "NC_017288.1");
-    REQUIRE_THROWS_AS
-    (   gynx::sq_gen<T>("wrong.fa", 1)
+    gynx::sq_gen<T> s;
+    CHECK_THROWS_AS
+    (   s.load("wrong.fa")
     ,   std::runtime_error
     );
-    gynx::sq_gen<T> bad_ndx(SAMPLE_GENOME, 3);
-    CHECK(bad_ndx.empty());
-    // gynx::sq_gen<T> s(SAMPLE_GENOME, "NC_017288.1");
-    gynx::sq_gen<T> s(SAMPLE_GENOME, 1);
-    CHECK(7553 == std::size(s));
-    CHECK(s(0, 10) == gynx::sq_gen<T>{"TATAATTAAA"});
-    CHECK(s (7543) == gynx::sq_gen<T>{"TCCAATTCTA"});
-    CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
-    std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
-    CHECK(desc == std::any_cast<std::string>(s["_desc"]));
+
+    gynx::sq_gen<T> wrong_ndx;
+    wrong_ndx.load(SAMPLE_GENOME, 3);
+    CHECK(wrong_ndx.empty());
+    gynx::sq_gen<T> bad_id;
+    bad_id.load(SAMPLE_GENOME, "bad_id");
+    CHECK(bad_id.empty());
+
+    SECTION( "load with index" )
+    {   gynx::sq_gen<T> s;
+        s.load(SAMPLE_GENOME, 1, gynx::io::fast_aqz<gynx::sq_gen<T>>());
+        CHECK(7553 == std::size(s));
+        CHECK(s(0, 10) == gynx::sq_gen<T>{"TATAATTAAA"});
+        CHECK(s (7543) == gynx::sq_gen<T>{"TCCAATTCTA"});
+        CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
+        std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
+        CHECK(desc == std::any_cast<std::string>(s["_desc"]));
+    }
+    SECTION( "load with id" )
+    {   gynx::sq_gen<T> s;
+        s.load(SAMPLE_GENOME, "NC_017288.1", gynx::io::fast_aqz<gynx::sq_gen<T>>());
+        CHECK(7553 == std::size(s));
+        CHECK(s(0, 10) == gynx::sq_gen<T>{"TATAATTAAA"});
+        CHECK(s (7543) == gynx::sq_gen<T>{"TCCAATTCTA"});
+        CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
+        std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
+        CHECK(desc == std::any_cast<std::string>(s["_desc"]));
+    }
 }

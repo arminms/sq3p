@@ -78,13 +78,6 @@ public:
     )
     :   sq_gen(read(filename, ndx))
     {}
-    sq_gen
-    (   std::string_view filename
-    ,   std::string_view id
-    ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
-    )
-    :   sq_gen(read(filename, id))
-    {}
     template<typename InputIt>
     sq_gen(InputIt first, InputIt last)
     :   _sq(first, last)
@@ -258,6 +251,18 @@ public:
 
 // -- file i/o -----------------------------------------------------------------
 
+    void load
+    (   std::string_view filename
+    ,   size_t ndx = 0
+    ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
+    )
+    {   *this = read(filename, ndx);   }
+    void load
+    (   std::string_view filename
+    ,   std::string_view id
+    ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
+    )
+    {   *this = read(filename, id);   }
     void print(std::ostream& os) const
     {   os << std::boolalpha << _sq.size();
         os.write(_sq.data(), _sq.size());
