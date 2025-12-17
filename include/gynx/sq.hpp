@@ -73,7 +73,7 @@ public:
     {}
     sq_gen
     (   std::string_view filename
-    ,   size_t ndx
+    ,   size_type ndx
     ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
     )
     :   sq_gen(read(filename, ndx))
@@ -253,7 +253,7 @@ public:
 
     void load
     (   std::string_view filename
-    ,   size_t ndx = 0
+    ,   size_type ndx = 0
     ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
     )
     {   *this = read(filename, ndx);   }
