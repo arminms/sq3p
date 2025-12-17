@@ -38,6 +38,9 @@
 #include <gynx/io/fastaqz.hpp>
 namespace gynx {
 
+/// @brief A generic sequence class template with tagged data support.
+/// @tparam Container The underlying container type to hold the sequence.
+/// @tparam Map The type of the map used for tagged data storage.
 template
 <   typename Container
 ,   typename Map = std::unordered_map<std::string, std::any>
@@ -58,19 +61,32 @@ public:
     using const_reverse_iterator = typename Container::const_reverse_iterator;
 
 // -- constructors -------------------------------------------------------------
-
+    ///
+    /// Default constructor. Constructs an empty sequence.
     sq_gen() noexcept
     :   _sq()
     ,   _ptr_td()
     {}
+    ///
+    /// @brief Constructs a sequence from a string view.
+    /// @param sq The string view representing the sequence.
     explicit sq_gen(std::string_view sq)
     :   _sq(std::begin(sq), std::end(sq))
     ,   _ptr_td()
     {}
+    ///
+    /// Constructs a sequence with @a count residues, each initialized to
+    /// @a value (default is 'A' (ASCII 65)).
+    /// @param count The number of residues in the sequence.
+    /// @param value The residue value to initialize each position with.
     sq_gen(size_type count, const_reference value = value_type(65))
     :   _sq(count, value)
     ,   _ptr_td()
     {}
+    ///
+    /// @brief Constructs a sequence by loading it from a file.
+    /// @param filename The name of the file to load the sequence from.
+    /// @param ndx The index of the sequence in the file.
     sq_gen
     (   std::string_view filename
     ,   size_type ndx
@@ -78,43 +94,59 @@ public:
     )
     :   sq_gen(read(filename, ndx))
     {}
+    ///
+    /// @brief Constructs a sequence from a pair of iterators.
+    /// @tparam InputIt The type of the input iterators.
+    /// @param first The beginning iterator of the sequence.
+    /// @param last The ending iterator of the sequence.
     template<typename InputIt>
     sq_gen(InputIt first, InputIt last)
     :   _sq(first, last)
     ,   _ptr_td()
     {}
+    ///
+    /// Copy constructor.
     sq_gen(const sq_gen& other)
     :   _sq(other._sq)
     ,   _ptr_td(other._ptr_td ? std::make_unique<Map>(*other._ptr_td) : nullptr)
     {}
+    ///
+    /// Move constructor.
     sq_gen(sq_gen&& other) noexcept
     :   _sq(std::move(other._sq))
     ,   _ptr_td(std::move(other._ptr_td))
     {}
+    ///
+    /// @brief Constructs a sequence from an initializer list.
+    /// @param init The initializer list containing the residues.
     sq_gen(std::initializer_list<value_type> init)
     :   _sq(init)
     ,   _ptr_td()
     {}
 
 // -- copy assignment operators ------------------------------------------------
-
+    ///
+    /// Copy assignment operator.
     sq_gen& operator= (const sq_gen& other)
     {   _sq = other._sq;
         _ptr_td = other._ptr_td;
         return *this;
     }
+    ///
+    /// Move assignment operator.
     sq_gen& operator= (sq_gen&& other)
     {   _sq = std::move(other._sq);
         _ptr_td = std::move(other._ptr_td);
         return *this;
     }
+    ///
+    /// Assignment operator from an initializer list.
     sq_gen& operator= (std::initializer_list<value_type> init)
     {   _sq = init;
         return *this;
     }
 
 // -- iterators ----------------------------------------------------------------
-
     ///
     /// Returns a read/write iterator that points to the first residue in the
     /// @a sq. Iteration is done in ordinary residue order.
@@ -177,13 +209,15 @@ public:
     {   return _sq.crend();   }
 
 // -- capacity -----------------------------------------------------------------
-
+    ///
     /// Returns true if the @a sq is empty. (Thus begin() would equal end().)
     bool empty() const noexcept
     {   return (_sq.empty() && (!_ptr_td || _ptr_td->empty()));   }
+    ///
     /// Returns the number of residues in the @a sq.
     size_type size() const noexcept
     {   return _sq.size();   }
+    ///
     /// Returns the size in memory (in bytes) used by the @a sq including its
     /// tagged data.
     size_type size_in_memory() const noexcept
@@ -201,14 +235,20 @@ public:
     }
 
 // -- subscript operator -------------------------------------------------------
-
+    ///
+    /// Returns a reference to the residue at position @a pos in the @a sq.
     reference operator[] (size_type pos)
     {   return _sq[pos];   }
+    ///
+    /// Returns a const reference to the residue at position @a pos in the @a sq.
     const_reference operator[] (size_type pos) const
     {   return _sq[pos];   }
 
 // -- subseq operator ----------------------------------------------------------
-
+    ///
+    /// Returns a subsequence starting at position @a pos with length @a count.
+    /// If @a count is std::string::npos or exceeds the sequence length from
+    /// @a pos, the subsequence extends to the end of the sequence.
     sq_gen operator() (size_type pos, size_type count = std::string::npos) const
     {   if (pos > _sq.size())
             throw std::out_of_range("gynx::sq: pos > this->size()");
@@ -219,7 +259,8 @@ public:
     }
 
 // -- managing tagged data -----------------------------------------------------
-
+    ///
+    /// Returns true if the tagged data with the specified @a tag exists.
     bool has(std::string_view tag) const
     {   return
         (   _ptr_td
@@ -229,40 +270,56 @@ public:
         :   false
         );
     }
+    ///
+    /// Returns a reference to the tagged data associated with the specified
+    /// @a tag. If the tagged data does not exist, a new entry is created.
     std::any& operator[] (const std::string& tag)
     {   if (!_ptr_td) _ptr_td = std::make_unique<Map>();
         return (*_ptr_td)[tag];
     }
+    ///
+    /// Returns a reference to the tagged data associated with the specified
+    /// @a tag. If the tagged data does not exist, a new entry is created.
     std::any& operator[] (std::string&& tag)
     {   if (!_ptr_td) _ptr_td = std::make_unique<Map>();
         return (*_ptr_td)[std::move(tag)];
     }
 
 // -- comparison operators -----------------------------------------------------
-
+    ///
+    /// Equality operator.
     template<typename Container1, typename Container2>
     friend
     bool operator== (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
     {   return lhs._sq == rhs._sq;   }
+    ///
+    /// Inequality operator.
     template<typename Container1, typename Container2>
     friend
     bool operator!= (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
     {   return lhs._sq != rhs._sq;   }
 
 // -- file i/o -----------------------------------------------------------------
-
+    ///
+    /// Loads a sequence from a file by its index using the provided
+    /// @a read function object
     void load
     (   std::string_view filename
     ,   size_type ndx = 0
     ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
     )
     {   *this = read(filename, ndx);   }
+    ///
+    /// Loads a sequence from a file by its identifier using the provided
+    /// @a read function object
     void load
     (   std::string_view filename
     ,   std::string_view id
     ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
     )
     {   *this = read(filename, id);   }
+    ///
+    /// Prints the sequence and its tagged data to the output stream @a os.
     void print(std::ostream& os) const
     {   os << std::boolalpha << _sq.size();
         os.write(_sq.data(), _sq.size());
@@ -280,6 +337,8 @@ public:
                    << "{}";
         }
     }
+    ///
+    /// Scans the sequence and its tagged data from the input stream @a is.
     void scan(std::istream& is)
     {   size_type n;
         is >> std::boolalpha >> n;
@@ -305,18 +364,20 @@ public:
 };
 
 // -- i/o stream operators -----------------------------------------------------
-
+    ///
+    /// Output stream operator for sq_gen.
     template<typename T>
     std::ostream& operator<< (std::ostream& os, const sq_gen<T>& s)
     {   s.print(os);
         return os;
     }
+    ///
+    /// Input stream operator for sq_gen.
     template<typename T>
     std::istream& operator>> (std::istream& is, sq_gen<T>& s)
     {   s.scan(is);
         return is;
     }
-
     ///
     /// A sequence of @a char
     using sq = sq_gen<std::vector<char>>;
