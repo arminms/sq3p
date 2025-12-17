@@ -33,9 +33,11 @@
 #include <any>
 #include <memory>
 #include <typeindex>
+#include <cstdint>
 
 #include <gynx/visitor.hpp>
 #include <gynx/io/fastaqz.hpp>
+
 namespace gynx {
 
 /// @brief A generic sequence class template with tagged data support.
@@ -70,7 +72,7 @@ public:
     ///
     /// @brief Constructs a sequence from a string view.
     /// @param sq The string view representing the sequence.
-    explicit sq_gen(std::string_view sq)
+    sq_gen(std::string_view sq)
     :   _sq(std::begin(sq), std::end(sq))
     ,   _ptr_td()
     {}
@@ -291,13 +293,15 @@ public:
     template<typename Container1, typename Container2>
     friend
     bool operator== (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
-    {   return lhs._sq == rhs._sq;   }
+    {   return lhs._sq == rhs._sq;
+    }
     ///
     /// Inequality operator.
     template<typename Container1, typename Container2>
     friend
     bool operator!= (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
-    {   return lhs._sq != rhs._sq;   }
+    {   return lhs._sq != rhs._sq;
+    }
 
 // -- file i/o -----------------------------------------------------------------
     ///
@@ -308,7 +312,8 @@ public:
     ,   size_type ndx = 0
     ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
     )
-    {   *this = read(filename, ndx);   }
+    {   *this = read(filename, ndx);
+    }
     ///
     /// Loads a sequence from a file by its identifier using the provided
     /// @a read function object
@@ -317,7 +322,8 @@ public:
     ,   std::string_view id
     ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
     )
-    {   *this = read(filename, id);   }
+    {   *this = read(filename, id);
+    }
     ///
     /// Prints the sequence and its tagged data to the output stream @a os.
     void print(std::ostream& os) const
@@ -363,30 +369,110 @@ public:
     }
 };
 
+// -- comparison operators -----------------------------------------------------
+
+///
+/// Helper to check if a type has .size()
+template <typename T, typename = void>
+struct has_size : std::false_type {};
+template <typename T>
+struct has_size<T, std::void_t<decltype(std::declval<T>().size())>> : std::true_type {};
+///
+/// Equality operator with other container types
+template<typename Container1, typename Container2>
+inline
+bool operator== (const sq_gen<Container1>& lhs, const Container2& rhs)
+{   if constexpr (has_size<Container2>::value)
+    {   if (lhs.size() != rhs.size())
+            return false;
+    }
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+///
+/// Symmetric equality operator with other container types
+template<typename Container1, typename Container2>
+inline
+bool operator== (const Container1& lhs, const sq_gen<Container2>& rhs)
+{   if constexpr (has_size<Container1>::value)
+    {   if (lhs.size() != rhs.size())
+            return false;
+    }
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+///
+/// Equality operator for sq_gen and C-string literals
+template<typename Container>
+inline
+bool operator== (const sq_gen<Container>& lhs, const char* rhs)
+{   return lhs == std::string_view(rhs); 
+}
+///
+/// Equality operator for C-string literals and sq_gen
+template<typename Container>
+inline
+bool operator== (const char* lhs, const sq_gen<Container>& rhs)
+{   return rhs == lhs; 
+}
+///
+/// Inequality operator with other container types
+template<typename Container1, typename Container2>
+inline
+bool operator!= (const sq_gen<Container1>& lhs, const Container2& rhs)
+{   return ! (lhs == rhs);
+}
+///
+/// Symmetric inequality operator with other container types
+template<typename Container1, typename Container2>
+inline
+bool operator!= (const Container1& lhs, const sq_gen<Container2>& rhs)
+{   return ! (lhs == rhs);
+}
+///
+/// Inequality operator for sq_gen and C-string literals
+template<typename Container>
+inline
+bool operator!= (const sq_gen<Container>& lhs, const char* rhs)
+{   return ! (lhs == rhs); 
+}
+///
+/// Inequality operator for C-string literals and sq_gen
+template<typename Container>
+inline
+bool operator!= (const char* lhs, const sq_gen<Container>& rhs)
+{   return ! (rhs == lhs); 
+}
+
 // -- i/o stream operators -----------------------------------------------------
-    ///
-    /// Output stream operator for sq_gen.
-    template<typename T>
-    std::ostream& operator<< (std::ostream& os, const sq_gen<T>& s)
-    {   s.print(os);
-        return os;
-    }
-    ///
-    /// Input stream operator for sq_gen.
-    template<typename T>
-    std::istream& operator>> (std::istream& is, sq_gen<T>& s)
-    {   s.scan(is);
-        return is;
-    }
-    ///
-    /// A sequence of @a char
-    using sq = sq_gen<std::vector<char>>;
+
+///
+/// Output stream operator for sq_gen.
+template<typename T>
+inline
+std::ostream& operator<< (std::ostream& os, const sq_gen<T>& s)
+{   s.print(os);
+    return os;
+}
+
+///
+/// Input stream operator for sq_gen.
+template<typename T>
+inline
+std::istream& operator>> (std::istream& is, sq_gen<T>& s)
+{   s.scan(is);
+    return is;
+}
+
+///
+/// A sequence of @a char
+using sq = sq_gen<std::vector<char>>;
 
 }   // end gynx namespace
 
 // -- string literal operator --------------------------------------------------
 
-    gynx::sq operator""_sq (const char* str, std::size_t len)
-    {   return gynx::sq(str);   }
+inline
+gynx::sq operator""_sq (const char* str, std::size_t len)
+{   return gynx::sq(str);
+}
 
 #endif  //_GYNX_SQ_HPP_

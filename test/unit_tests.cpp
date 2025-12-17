@@ -26,25 +26,41 @@
 
 TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
+
     gynx::sq_gen<T> s{"ACGT"};
+    std::string t{"ACGT"}, u{"acgt"}, v{"ACGT "};
     s["test-int"] = -33;
 
 // -- comparison operators -----------------------------------------------------
 
     SECTION( "comparison operators" )
-    {   REQUIRE(  s == gynx::sq_gen<T>("ACGT") );
+    {   REQUIRE(  s == gynx::sq_gen<T>("ACGT"));
         REQUIRE(!(s == gynx::sq_gen<T>("acgt")));
         REQUIRE(  s != gynx::sq_gen<T>("acgt") );
         REQUIRE(!(s != gynx::sq_gen<T>("ACGT")));
+
+        REQUIRE(s == t);
+        REQUIRE(t == s);
+        REQUIRE(s != u);
+        REQUIRE(u != s);
+        REQUIRE(s != v);
+        REQUIRE(v != s);
+
+        REQUIRE(s == "ACGT");
+        REQUIRE("ACGT" == s);
+        REQUIRE(s != "acgt");
+        REQUIRE("acgt" != s);
+        REQUIRE(s != "ACGT ");
+        REQUIRE("ACGT " != s);
     }
 
 // -- constructors -------------------------------------------------------------
 
     SECTION( "single value constructor" )
     {   gynx::sq_gen<T> a4(4);
-        CHECK(a4 == gynx::sq_gen<T>("AAAA"));
+        CHECK(a4 == "AAAA");
         gynx::sq_gen<T> c4(4, 'C');
-        CHECK(c4 == gynx::sq_gen<T>("CCCC"));
+        CHECK(c4 == "CCCC");
     }
     SECTION( "from file constructor" )
     {   gynx::sq_gen<T> s(SAMPLE_GENOME, 1);
@@ -104,7 +120,7 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
         ;   ++t_it, ++s_it
         )
             *t_it = *s_it;
-        CHECK(t == gynx::sq_gen<T>("ACGT"));
+        CHECK(t == "ACGT");
     }
     SECTION( "cbegin/cend" )
     {   const gynx::sq_gen<T> t(4);
@@ -115,7 +131,7 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
         ;   ++t_it, ++s_it
         )
             *s_it = *t_it;
-        CHECK(s == gynx::sq_gen<T>("AAAA"));
+        CHECK(s == "AAAA");
     }
     SECTION( "rbegin/rend" )
     {   gynx::sq_gen<T> t(4);
@@ -126,7 +142,7 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
         ;   ++t_it, ++s_it
         )
             *t_it = *s_it;
-        CHECK(t == gynx::sq_gen<T>("TGCA"));
+        CHECK(t == "TGCA");
     }
     SECTION( "crbegin/crend" )
     {   const gynx::sq_gen<T> t("ACGT");
@@ -137,7 +153,7 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
         ;   ++t_it, ++s_it
         )
             *s_it = *t_it;
-        CHECK(s == gynx::sq_gen<T>("TGCA"));
+        CHECK(s == "TGCA");
     }
 
 // -- capacity -----------------------------------------------------------------
@@ -172,8 +188,8 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
     {   gynx::sq_gen<T> org{"CCATACGTGAC"};
         CHECK(org(4, 4) == s);
         CHECK(org(0) == org);
-        CHECK(org(4) == gynx::sq_gen<T>{"ACGTGAC"});
-        CHECK_THROWS_AS(org(20) == gynx::sq_gen<T>{"ACGTGAC"}, std::out_of_range);
+        CHECK(org(4) == "ACGTGAC");
+        CHECK_THROWS_AS(org(20) == "ACGTGAC", std::out_of_range);
     }
 
 // -- managing tagged data -----------------------------------------------------
@@ -265,8 +281,8 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
     {   gynx::sq_gen<T> s;
         s.load(SAMPLE_GENOME, 1, gynx::io::fast_aqz<gynx::sq_gen<T>>());
         CHECK(7553 == std::size(s));
-        CHECK(s(0, 10) == gynx::sq_gen<T>{"TATAATTAAA"});
-        CHECK(s (7543) == gynx::sq_gen<T>{"TCCAATTCTA"});
+        CHECK(s(0, 10) == "TATAATTAAA");
+        CHECK(s( 7543) == "TCCAATTCTA");
         CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
         std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
         CHECK(desc == std::any_cast<std::string>(s["_desc"]));
@@ -275,8 +291,8 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
     {   gynx::sq_gen<T> s;
         s.load(SAMPLE_GENOME, "NC_017288.1", gynx::io::fast_aqz<gynx::sq_gen<T>>());
         CHECK(7553 == std::size(s));
-        CHECK(s(0, 10) == gynx::sq_gen<T>{"TATAATTAAA"});
-        CHECK(s (7543) == gynx::sq_gen<T>{"TCCAATTCTA"});
+        CHECK(s(0, 10) == "TATAATTAAA");
+        CHECK(s( 7543) == "TCCAATTCTA");
         CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
         std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
         CHECK(desc == std::any_cast<std::string>(s["_desc"]));
