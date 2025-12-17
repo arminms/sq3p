@@ -32,6 +32,9 @@ namespace gynx::io {
 
 KSEQ_INIT(gzFile, gzread)
 
+/// @brief A function object for reading FASTA/FASTQ files (possibly compressed
+/// with gzip) and loading sequences into the specified @a Sequence type.
+/// @tparam Sequence
 template <class Sequence>
 struct fast_aqz
 {   Sequence operator() (std::string_view filename, size_t ndx)
@@ -96,6 +99,30 @@ struct fast_aqz
             throw std::runtime_error
                 ("gynx::fast_aqz: error reading file -> " + std::string(filename)); 
         return s;
+    }
+};
+
+struct fasta_gz
+{   template <class Sequence>
+    int operator() (std::string_view filename, const Sequence& seq)
+    {   gzFile fp = filename == "-"
+        ?   gzdopen(fileno(stdout), "w")
+        :   gzopen(std::string(filename).c_str(), "w");
+        if (nullptr == fp)
+            throw std::runtime_error
+                ("gynx::fasta: could not open file -> " + std::string(filename));
+        std::string id = seq.has("_id")
+        ?   std::any_cast<std::string>(seq["_id"])
+        :   "seq";
+        std::string desc = seq.has("_desc")
+        ?   " " + std::any_cast<std::string>(seq["_desc"])
+        :   "";
+        std::string header = ">" + id + desc + "\n";
+        gzwrite(fp, header.c_str(), header.size());
+        gzwrite(fp, seq.data(), seq.size());
+        gzwrite(fp, "\n", 1);
+        gzclose(fp);
+        return 0;
     }
 };
 

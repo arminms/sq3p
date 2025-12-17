@@ -279,7 +279,7 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
 
     SECTION( "load with index" )
     {   gynx::sq_gen<T> s;
-        s.load(SAMPLE_GENOME, 1, gynx::io::fast_aqz<gynx::sq_gen<T>>());
+        s.load(SAMPLE_GENOME, 1, gynx::io::fast_aqz<decltype(s)>());
         CHECK(7553 == std::size(s));
         CHECK(s(0, 10) == "TATAATTAAA");
         CHECK(s( 7543) == "TCCAATTCTA");
@@ -289,12 +289,22 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
     }
     SECTION( "load with id" )
     {   gynx::sq_gen<T> s;
-        s.load(SAMPLE_GENOME, "NC_017288.1", gynx::io::fast_aqz<gynx::sq_gen<T>>());
+        s.load(SAMPLE_GENOME, "NC_017288.1");
         CHECK(7553 == std::size(s));
         CHECK(s(0, 10) == "TATAATTAAA");
         CHECK(s( 7543) == "TCCAATTCTA");
         CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
         std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
         CHECK(desc == std::any_cast<std::string>(s["_desc"]));
+    }
+    SECTION( "save fasta.gz" )
+    {   gynx::sq_gen<T> s;
+        s.load(SAMPLE_GENOME, 1);
+        std::string filename = "test_output.fa.gz";
+        s.save(filename, gynx::io::fasta_gz());
+        gynx::sq_gen<T> t;
+        t.load(filename, 0);
+        CHECK(s == t);
+        std::remove(filename.c_str());
     }
 }

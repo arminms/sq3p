@@ -286,6 +286,24 @@ public:
     {   if (!_ptr_td) _ptr_td = std::make_unique<Map>();
         return (*_ptr_td)[std::move(tag)];
     }
+    ///
+    /// Returns a const reference to the tagged data associated with the specified
+    /// @a tag. Throws std::out_of_range if the tag does not exist.
+    const std::any& operator[] (const std::string& tag) const
+    {   if (!_ptr_td || _ptr_td->find(tag) == _ptr_td->end())
+            throw std::out_of_range("gynx::sq: tag not found -> " + tag);
+        return _ptr_td->at(tag);
+    }
+    ///
+    /// Returns a reference to the underlying container's data.
+    value_type* data() noexcept
+    {   return _sq.data();
+    }
+    ///
+    /// Returns a const reference to the underlying container's data.
+    const value_type* data() const noexcept
+    {   return _sq.data();
+    }
 
 // -- comparison operators -----------------------------------------------------
     ///
@@ -294,6 +312,13 @@ public:
     friend
     bool operator== (const sq_gen<Container1>& lhs, const sq_gen<Container2>& rhs)
     {   return lhs._sq == rhs._sq;
+    }
+    ///
+    /// Equality operator with std::string_view.
+    bool operator==(std::string_view sv) const
+    {   if (size() != sv.size())
+            return false;
+        return std::equal(_sq.begin(), _sq.end(), sv.begin());
     }
     ///
     /// Inequality operator.
@@ -323,6 +348,15 @@ public:
     ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
     )
     {   *this = read(filename, id);
+    }
+    ///
+    /// Saves the sequence to a file using the provided write function object
+    template<typename WriteFunc>
+    void save
+    (   std::string_view filename
+    ,   WriteFunc write
+    )
+    {   write(filename, *this);
     }
     ///
     /// Prints the sequence and its tagged data to the output stream @a os.
@@ -370,109 +404,77 @@ public:
 };
 
 // -- comparison operators -----------------------------------------------------
-
-///
-/// Helper to check if a type has .size()
-template <typename T, typename = void>
-struct has_size : std::false_type {};
-template <typename T>
-struct has_size<T, std::void_t<decltype(std::declval<T>().size())>> : std::true_type {};
-///
-/// Equality operator with other container types
-template<typename Container1, typename Container2>
-inline
-bool operator== (const sq_gen<Container1>& lhs, const Container2& rhs)
-{   if constexpr (has_size<Container2>::value)
-    {   if (lhs.size() != rhs.size())
-            return false;
+    ///
+    /// Helper to check if a type has .size()
+    template <typename T, typename = void>
+    struct has_size : std::false_type {};
+    template <typename T>
+    struct has_size<T, std::void_t<decltype(std::declval<T>().size())>> : std::true_type {};
+    ///
+    /// Equality operators
+    template<typename Container1, typename Container2>
+    bool operator== (const sq_gen<Container1>& lhs, const Container2& rhs)
+    {   if constexpr (has_size<Container2>::value)
+        {   if (lhs.size() != rhs.size())
+                return false;
+        }
+        return std::equal(lhs.begin(), lhs.end(), std::begin(rhs));
     }
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
-}
-///
-/// Symmetric equality operator with other container types
-template<typename Container1, typename Container2>
-inline
-bool operator== (const Container1& lhs, const sq_gen<Container2>& rhs)
-{   if constexpr (has_size<Container1>::value)
-    {   if (lhs.size() != rhs.size())
-            return false;
+    template<typename Container1, typename Container2>
+    bool operator== (const Container1& lhs, const sq_gen<Container2>& rhs)
+    {   if constexpr (has_size<Container1>::value)
+        {   if (lhs.size() != rhs.size())
+                return false;
+        }
+        return std::equal(std::begin(lhs), std::end(lhs), rhs.begin());
     }
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
-}
-///
-/// Equality operator for sq_gen and C-string literals
-template<typename Container>
-inline
-bool operator== (const sq_gen<Container>& lhs, const char* rhs)
-{   return lhs == std::string_view(rhs); 
-}
-///
-/// Equality operator for C-string literals and sq_gen
-template<typename Container>
-inline
-bool operator== (const char* lhs, const sq_gen<Container>& rhs)
-{   return rhs == lhs; 
-}
-///
-/// Inequality operator with other container types
-template<typename Container1, typename Container2>
-inline
-bool operator!= (const sq_gen<Container1>& lhs, const Container2& rhs)
-{   return ! (lhs == rhs);
-}
-///
-/// Symmetric inequality operator with other container types
-template<typename Container1, typename Container2>
-inline
-bool operator!= (const Container1& lhs, const sq_gen<Container2>& rhs)
-{   return ! (lhs == rhs);
-}
-///
-/// Inequality operator for sq_gen and C-string literals
-template<typename Container>
-inline
-bool operator!= (const sq_gen<Container>& lhs, const char* rhs)
-{   return ! (lhs == rhs); 
-}
-///
-/// Inequality operator for C-string literals and sq_gen
-template<typename Container>
-inline
-bool operator!= (const char* lhs, const sq_gen<Container>& rhs)
-{   return ! (rhs == lhs); 
-}
+    ///
+    /// Symmetric operator for "literal" == sq_gen
+    template<typename Container>
+    bool operator==(std::string_view lhs, const sq_gen<Container>& rhs)
+    {   return rhs == lhs; 
+    }
+    ///    /// Specialization for C-string literal comparisons (const char*)
+    template<typename Container>
+    bool operator==(const char* lhs, const sq_gen<Container>& rhs)
+    {   return std::string_view(lhs) == rhs;
+    }
+    template<typename Container>
+    bool operator==(const sq_gen<Container>& lhs, const char* rhs)
+    {   return lhs == std::string_view(rhs);
+    }
+    ///    /// Inequality operator.
+    template<typename Container1, typename Container2>
+    bool operator!= (const sq_gen<Container1>& lhs, const Container2& rhs)
+    {   return ! (lhs == rhs);   }
+    template<typename Container1, typename Container2>
+    bool operator!= (const Container1& lhs, const sq_gen<Container2>& rhs)
+    {   return ! (lhs == rhs);   }
 
 // -- i/o stream operators -----------------------------------------------------
-
-///
-/// Output stream operator for sq_gen.
-template<typename T>
-inline
-std::ostream& operator<< (std::ostream& os, const sq_gen<T>& s)
-{   s.print(os);
-    return os;
-}
-
-///
-/// Input stream operator for sq_gen.
-template<typename T>
-inline
-std::istream& operator>> (std::istream& is, sq_gen<T>& s)
-{   s.scan(is);
-    return is;
-}
-
-///
-/// A sequence of @a char
-using sq = sq_gen<std::vector<char>>;
+    ///
+    /// Output stream operator for sq_gen.
+    template<typename T>
+    std::ostream& operator<< (std::ostream& os, const sq_gen<T>& s)
+    {   s.print(os);
+        return os;
+    }
+    ///
+    /// Input stream operator for sq_gen.
+    template<typename T>
+    std::istream& operator>> (std::istream& is, sq_gen<T>& s)
+    {   s.scan(is);
+        return is;
+    }
+    ///
+    /// A sequence of @a char
+    using sq = sq_gen<std::vector<char>>;
 
 }   // end gynx namespace
 
 // -- string literal operator --------------------------------------------------
 
-inline
-gynx::sq operator""_sq (const char* str, std::size_t len)
-{   return gynx::sq(str);
-}
+    gynx::sq operator""_sq (const char* str, std::size_t len)
+    {   return gynx::sq(str);   }
 
 #endif  //_GYNX_SQ_HPP_
