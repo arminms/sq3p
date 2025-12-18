@@ -257,7 +257,7 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
     }
 }
 
-TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
+TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in][out]", std::vector<char>)
 {   typedef TestType T;
     std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
     gynx::sq_gen<T> s, t;
@@ -301,6 +301,22 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
     {   s.load(SAMPLE_GENOME, 1);
         std::string filename = "test_output.fa.gz";
         s.save(filename, gynx::out::fasta_gz());
+        t.load(filename);
+        CHECK(s == t);
+        std::remove(filename.c_str());
+    }
+    SECTION( "save fastq" )
+    {   s.load(SAMPLE_READS);
+        std::string filename = "test_reads.fq";
+        s.save(filename, gynx::out::fastq());
+        t.load(filename);
+        CHECK(s == t);
+        std::remove(filename.c_str());
+    }
+    SECTION( "save fastq.gz" )
+    {   s.load(SAMPLE_READS);
+        std::string filename = "test_reads.fq.gz";
+        s.save(filename, gynx::out::fastq_gz());
         t.load(filename);
         CHECK(s == t);
         std::remove(filename.c_str());

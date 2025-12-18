@@ -8,9 +8,20 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(sample_genome)
 
+## fetching sample reads (Experiment: SRX6910578)
+#
+FetchContent_Declare(
+  sample_reads
+  URL       ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR101/073/SRR10190173/SRR10190173_1.fastq.gz
+  URL_HASH MD5=f93602650632e6d0a32201457b4a2385
+  DOWNLOAD_NO_EXTRACT TRUE
+)
+FetchContent_MakeAvailable(sample_reads)
+
 ## add path for unit tests
 #
 add_definitions(-DSAMPLE_GENOME="${sample_genome_SOURCE_DIR}/GCF_000204255.1_ASM20425v1_genomic.fna.gz")
+add_definitions(-DSAMPLE_READS="${sample_reads_SOURCE_DIR}/SRR10190173_1.fastq.gz")
 
 ## defining target for unit tests
 #
