@@ -315,7 +315,7 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in][out]", std::vector<char>)
     }
     SECTION( "save fastq.gz" )
     {   s.load(SAMPLE_READS);
-        std::string filename = "test_reads.fq.gz";
+        std::string filename = "test_reads.fqz";
         s.save(filename, gynx::out::fastq_gz());
         t.load(filename);
         CHECK(s == t);

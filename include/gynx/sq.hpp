@@ -344,9 +344,8 @@ public:
     void save
     (   std::string_view filename
     ,   WriteFunc write
-    ,   size_type line_width = 80
     )
-    {   write(filename, *this, line_width);
+    {   write(filename, *this);
     }
     ///
     /// Prints the sequence and its tagged data to the output stream @a os.
