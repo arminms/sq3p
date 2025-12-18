@@ -86,17 +86,6 @@ public:
     ,   _ptr_td()
     {}
     ///
-    /// @brief Constructs a sequence by loading it from a file.
-    /// @param filename The name of the file to load the sequence from.
-    /// @param ndx The index of the sequence in the file.
-    sq_gen
-    (   std::string_view filename
-    ,   size_type ndx
-    ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
-    )
-    :   sq_gen(read(filename, ndx))
-    {}
-    ///
     /// @brief Constructs a sequence from a pair of iterators.
     /// @tparam InputIt The type of the input iterators.
     /// @param first The beginning iterator of the sequence.
@@ -228,8 +217,8 @@ public:
         {   mem += sizeof(Map);
             for (const auto& [tag, data] : *_ptr_td)
             {   mem += tag.capacity() * sizeof(char);
-                // Note: estimating size of std::any content is not straightforward.
-                // Here we just add sizeof of the contained type as a rough estimate.
+            // Note: estimating size of std::any content is not straightforward.
+            // Here we just add sizeof of the contained type as a rough estimate.
                 mem += data.has_value() ? sizeof(data.type()) : 0;
             }
         }
@@ -335,7 +324,7 @@ public:
     void load
     (   std::string_view filename
     ,   size_type ndx = 0
-    ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
+    ,   in::fast_aqz<sq_gen> read = in::fast_aqz<sq_gen>()
     )
     {   *this = read(filename, ndx);
     }
@@ -345,7 +334,7 @@ public:
     void load
     (   std::string_view filename
     ,   std::string_view id
-    ,   io::fast_aqz<sq_gen> read = io::fast_aqz<sq_gen>()
+    ,   in::fast_aqz<sq_gen> read = in::fast_aqz<sq_gen>()
     )
     {   *this = read(filename, id);
     }
@@ -398,7 +387,10 @@ public:
             )
                 it->second(is, a);
             else
-                throw std::runtime_error("gynx::sq: unregistered type -> " + type);
+                throw std::runtime_error
+                (   "gynx::sq: unregistered type -> "
+                +   type
+                );
             (*_ptr_td)[tag] = a;
         }
     }
@@ -408,9 +400,13 @@ public:
     ///
     /// Helper to check if a type has .size()
     template <typename T, typename = void>
-    struct has_size : std::false_type {};
+    struct has_size
+    :   std::false_type
+    {};
     template <typename T>
-    struct has_size<T, std::void_t<decltype(std::declval<T>().size())>> : std::true_type {};
+    struct has_size<T, std::void_t<decltype(std::declval<T>().size())>>
+    :   std::true_type
+    {};
     ///
     /// Equality operators
     template<typename Container1, typename Container2>

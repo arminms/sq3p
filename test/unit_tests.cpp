@@ -62,11 +62,6 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
         gynx::sq_gen<T> c4(4, 'C');
         CHECK(c4 == "CCCC");
     }
-    SECTION( "from file constructor" )
-    {   gynx::sq_gen<T> s(SAMPLE_GENOME, 1);
-        CHECK(7553 == std::size(s));
-        CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
-    }
     SECTION( "iterator constructor" )
     {   std::string acgt{"ACGT"};
         gynx::sq_gen<T> c(std::begin(acgt), std::end(acgt));
@@ -264,7 +259,8 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
 
 TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
 {   typedef TestType T;
-    gynx::sq_gen<T> s;
+    std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
+    gynx::sq_gen<T> s, t;
     CHECK_THROWS_AS
     (   s.load("wrong.fa")
     ,   std::runtime_error
@@ -278,30 +274,34 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in]", std::vector<char>)
     CHECK(bad_id.empty());
 
     SECTION( "load with index" )
-    {   gynx::sq_gen<T> s;
-        s.load(SAMPLE_GENOME, 1, gynx::io::fast_aqz<decltype(s)>());
+    {   s.load(SAMPLE_GENOME, 1, gynx::in::fast_aqz<decltype(s)>());
         CHECK(7553 == std::size(s));
         CHECK(s(0, 10) == "TATAATTAAA");
         CHECK(s( 7543) == "TCCAATTCTA");
         CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
-        std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
         CHECK(desc == std::any_cast<std::string>(s["_desc"]));
     }
     SECTION( "load with id" )
-    {   gynx::sq_gen<T> s;
-        s.load(SAMPLE_GENOME, "NC_017288.1");
+    {   s.load(SAMPLE_GENOME, "NC_017288.1");
         CHECK(7553 == std::size(s));
         CHECK(s(0, 10) == "TATAATTAAA");
         CHECK(s( 7543) == "TCCAATTCTA");
         CHECK("NC_017288.1" == std::any_cast<std::string>(s["_id"]));
-        std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
         CHECK(desc == std::any_cast<std::string>(s["_desc"]));
     }
+    SECTION( "save fasta" )
+    {   s.load(SAMPLE_GENOME, 1);
+        std::string filename = "test_output.fa";
+        s.save(filename, gynx::out::fasta());
+        t.load(filename);
+        CHECK(s == t);
+        std::remove(filename.c_str());
+    }
     SECTION( "save fasta.gz" )
-    {   gynx::sq_gen<T> s(SAMPLE_GENOME, 1);
+    {   s.load(SAMPLE_GENOME, 1);
         std::string filename = "test_output.fa.gz";
-        s.save(filename, gynx::io::fasta_gz());
-        gynx::sq_gen<T> t(filename, 0);
+        s.save(filename, gynx::out::fasta_gz());
+        t.load(filename);
         CHECK(s == t);
         std::remove(filename.c_str());
     }
