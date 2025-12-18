@@ -104,7 +104,11 @@ struct fast_aqz
 
 struct fasta_gz
 {   template <class Sequence>
-    int operator() (std::string_view filename, const Sequence& seq)
+    int operator()
+    (   std::string_view filename
+    ,   const Sequence& seq
+    ,   typename Sequence::size_type line_width = 80
+    )
     {   gzFile fp = filename == "-"
         ?   gzdopen(fileno(stdout), "w")
         :   gzopen(std::string(filename).c_str(), "w");
@@ -119,8 +123,18 @@ struct fasta_gz
         :   "";
         std::string header = ">" + id + desc + "\n";
         gzwrite(fp, header.c_str(), header.size());
-        gzwrite(fp, seq.data(), seq.size());
-        gzwrite(fp, "\n", 1);
+        for
+        (   typename Sequence::size_type i = 0
+        ;   i < std::size(seq)
+        ;   i += line_width
+        )
+        {   std::string_view line
+            (   &seq[i]
+            ,   std::min(line_width, std::size(seq) - i)
+            );
+            gzwrite(fp, line.data(), line.size());
+            gzwrite(fp, "\n", 1);
+        }
         gzclose(fp);
         return 0;
     }
