@@ -22,7 +22,9 @@
 #include <catch2/catch_all.hpp>
 
 #include <gynx/sq.hpp>
+#include <gynx/sq_view.hpp>
 #include <gynx/io/fastaqz.hpp>
+// #include <gynx/lut/phred33.hpp>
 
 TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
@@ -257,6 +259,95 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
     }
 }
 
+TEMPLATE_TEST_CASE( "gynx::sq_view", "[view]", std::vector<char>)
+{   typedef TestType T;
+
+    gynx::sq_gen<T> s{"ACGT"};
+
+// -- constructors -------------------------------------------------------------
+
+    SECTION( "construct from sq_gen" )
+    {   gynx::sq_view_gen<T> v{s};
+        CHECK(v.size() == s.size());
+        CHECK_FALSE(v.empty());
+        CHECK(v == s);
+        CHECK(v == "ACGT");
+    }
+
+    SECTION( "construct from pointer+length" )
+    {   const char* p = "ACGT";
+        gynx::sq_view_gen<T> v{p, 4};
+        CHECK(v.size() == 4);
+        CHECK(v[0] == 'A');
+        CHECK(v.at(3) == 'T');
+        CHECK(v.front() == 'A');
+        CHECK(v.back() == 'T');
+    }
+
+// -- iterators ----------------------------------------------------------------
+
+    SECTION( "iterate over view" )
+    {   gynx::sq_view_gen<T> v{s};
+        std::string collected;
+        for (auto it = v.begin(); it != v.end(); ++it)
+            collected.push_back(*it);
+        CHECK(collected == "ACGT");
+
+        std::string rev;
+        for (auto it = v.rbegin(); it != v.rend(); ++it)
+            rev.push_back(*it);
+        CHECK(rev == std::string{"TGCA"});
+    }
+
+// -- modifiers ----------------------------------------------------------------
+
+    SECTION( "remove_prefix/suffix" )
+    {   gynx::sq_view_gen<T> v{s};
+        v.remove_prefix(1); // drop 'A'
+        CHECK(v == "CGT");
+        v.remove_suffix(1); // drop trailing 'T'
+        CHECK(v == "CG");
+        // original sequence unchanged
+        CHECK(s == "ACGT");
+    }
+
+    SECTION( "remove_prefix/suffix bounds" )
+    {   gynx::sq_view_gen<T> v{s};
+        REQUIRE_THROWS_AS(v.remove_prefix(5), std::out_of_range);
+        REQUIRE_THROWS_AS(v.remove_suffix(5), std::out_of_range);
+    }
+
+// -- operations ---------------------------------------------------------------
+
+    SECTION( "substr" )
+    {   gynx::sq_view_gen<T> v{s};
+        auto sub = v.substr(1, 2);
+        CHECK(sub == "CG");
+        auto to_end = v.substr(2);
+        CHECK(to_end == "GT");
+        REQUIRE_THROWS_AS(v.substr(10), std::out_of_range);
+    }
+
+// -- comparisons --------------------------------------------------------------
+
+    SECTION( "compare to sq_gen and C-string" )
+    {   gynx::sq_view_gen<T> v{s};
+        CHECK(v == s);
+        CHECK(s == v);
+        CHECK(v == "ACGT");
+        CHECK("ACGT" == v);
+        CHECK(v != "acgt");
+        CHECK("acgt" != v);
+    }
+
+// -- alias -------------------------------------------------------------------
+
+    SECTION( "alias gynx::sq_view" )
+    {   gynx::sq_view v{s};
+        CHECK(v == "ACGT");
+    }
+}
+
 TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in][out]", std::vector<char>)
 {   typedef TestType T;
     std::string desc("Chlamydia psittaci 6BC plasmid pCps6BC, complete sequence");
@@ -272,6 +363,11 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in][out]", std::vector<char>)
     gynx::sq_gen<T> bad_id;
     bad_id.load(SAMPLE_GENOME, "bad_id");
     CHECK(bad_id.empty());
+
+    // REQUIRE_THAT
+    // (   gynx::lut::phred33[static_cast<uint8_t>('J')]
+    // ,   Catch::Matchers::WithinAbs(7.943282e-05, 0.000001)
+    // );
 
     SECTION( "load with index" )
     {   s.load(SAMPLE_GENOME, 1, gynx::in::fast_aqz<decltype(s)>());

@@ -20,6 +20,7 @@ kernelspec:
 
 #include <g3p/gnuplot>
 #include <gynx/sq.hpp>
+#include <gynx/sq_view.hpp>
 #include <gynx/io/faqz.hpp>
 ```
 
@@ -131,6 +132,31 @@ ss >> t;
 ```{code-cell} cpp
 std::cout << t;
 ```
+++
+## Non-owning sequence views
+
+`gynx::sq_view` is a lightweight, non-owning view over a `gynx::sq` (or any compatible container), similar to `std::string_view`. It avoids copying while letting you slice and compare.
+
+```{code-cell} cpp
+gynx::sq s{"ACGT"};
+gynx::sq_view v{s};         // view over s, no copy
+
+// iteration
+for (auto it = v.begin(); it != v.end(); ++it) { /* use *it */ }
+
+// slicing without allocation
+auto mid = v.substr(1, 2);  // "CG"
+
+// adjust view window
+v.remove_prefix(1);          // now "CGT"
+v.remove_suffix(1);          // now "CG"
+
+// comparisons
+(v == "CG");               // true
+(v != s);                    // true, because s is "ACGT"
+```
+
+Use `gynx::sq_view_gen<Container>` for custom containers whose `value_type` and layout match `sq_gen`’s expectations.
 +++
 ```{code-cell} cpp
 std::stringstream ss;

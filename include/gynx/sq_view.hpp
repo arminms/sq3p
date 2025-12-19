@@ -1,0 +1,225 @@
+//
+// Copyright (c) 2025 Armin Sobhani
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+#ifndef _GYNX_SQ_VIEW_HPP_
+#define _GYNX_SQ_VIEW_HPP_
+
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <stdexcept>
+#include <string_view>
+#include <type_traits>
+#include <vector>
+
+#include <gynx/sq.hpp>
+
+namespace gynx {
+
+/// @brief A non-owning view over a sequence, similar to std::basic_string_view.
+/// @tparam Container The container type used by the owning sq_gen.
+template<typename Container>
+class sq_view_gen
+{
+public:
+    using value_type = typename Container::value_type;
+    using size_type = typename Container::size_type;
+    using difference_type = typename Container::difference_type;
+    using const_pointer = const value_type*;
+    using const_reference = const value_type&;
+    using const_iterator = const_pointer;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    static constexpr size_type npos = static_cast<size_type>(-1);
+
+// -- constructors -------------------------------------------------------------
+    constexpr sq_view_gen() noexcept
+    :   _data(nullptr)
+    ,   _size(0)
+    {}
+
+    constexpr sq_view_gen(const value_type* data, size_type count) noexcept
+    :   _data(data)
+    ,   _size(count)
+    {}
+
+    template<typename Map>
+    constexpr sq_view_gen(const sq_gen<Container, Map>& seq) noexcept
+    :   _data(seq.data())
+    ,   _size(seq.size())
+    {}
+
+// -- iterators ----------------------------------------------------------------
+    constexpr const_iterator begin() const noexcept
+    {   return _data;
+    }
+    constexpr const_iterator end() const noexcept
+    {   return _data + _size;
+    }
+    constexpr const_iterator cbegin() const noexcept
+    {   return begin();
+    }
+    constexpr const_iterator cend() const noexcept
+    {   return end();
+    }
+    constexpr const_reverse_iterator rbegin() const noexcept
+    {   return const_reverse_iterator(end());
+    }
+    constexpr const_reverse_iterator rend() const noexcept
+    {   return const_reverse_iterator(begin());
+    }
+    constexpr const_reverse_iterator crbegin() const noexcept
+    {   return rbegin();
+    }
+    constexpr const_reverse_iterator crend() const noexcept
+    {   return rend();
+    }
+
+// -- capacity -----------------------------------------------------------------
+    constexpr size_type size() const noexcept
+    {   return _size;
+    }
+    constexpr bool empty() const noexcept
+    {   return _size == 0;
+    }
+
+// -- element access -----------------------------------------------------------
+    constexpr const_reference operator[] (size_type pos) const
+    {   return _data[pos];
+    }
+    constexpr const_reference at(size_type pos) const
+    {   if (pos >= _size)
+            throw std::out_of_range("gynx::sq_view: pos >= size()");
+        return _data[pos];
+    }
+    constexpr const_reference front() const
+    {   return _data[0];
+    }
+    constexpr const_reference back() const
+    {   return _data[_size - 1];
+    }
+
+    constexpr const_pointer data() const noexcept
+    {   return _data;
+    }
+
+// -- modifiers ----------------------------------------------------------------
+
+    constexpr void remove_prefix(size_type n)
+    {   if (n > _size)
+            throw std::out_of_range("gynx::sq_view: remove_prefix overflow");
+        _data += n;
+        _size -= n;
+    }
+    constexpr void remove_suffix(size_type n)
+    {   if (n > _size)
+            throw std::out_of_range("gynx::sq_view: remove_suffix overflow");
+        _size -= n;
+    }
+
+// -- operations ---------------------------------------------------------------
+    constexpr sq_view_gen substr(size_type pos, size_type count = npos) const
+    {   if (pos > _size)
+            throw std::out_of_range("gynx::sq_view: pos > size()");
+        const size_type rlen = std::min(count, static_cast<size_type>(_size - pos));
+        return sq_view_gen(_data + pos, rlen);
+    }
+
+private:
+    const_pointer _data;
+    size_type _size;
+};
+
+// -- comparison operators -----------------------------------------------------
+    template<typename Container>
+    constexpr bool operator==
+    (   const sq_view_gen<Container>& lhs
+    ,   const sq_view_gen<Container>& rhs
+    )
+    {   return lhs.size() == rhs.size()
+        && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+    }
+
+    // Note: comparisons with sq_gen are provided generically in sq.hpp.
+    // Avoid defining overlapping overloads here to prevent ambiguity.
+
+    template<typename Container>
+    constexpr bool operator!= (const sq_view_gen<Container>& lhs, const sq_view_gen<Container>& rhs)
+    {   return ! (lhs == rhs);
+    }
+
+    // Inequality with sq_gen is covered by the generic operators in sq.hpp.
+
+    template<typename Container>
+    constexpr std::enable_if_t<std::is_same_v<typename Container::value_type, char>, bool>
+    operator== (const sq_view_gen<Container>& lhs, std::string_view rhs)
+    {   return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+    }
+
+    template<typename Container>
+    constexpr std::enable_if_t<std::is_same_v<typename Container::value_type, char>, bool>
+    operator== (std::string_view lhs, const sq_view_gen<Container>& rhs)
+    {   return rhs == lhs;
+    }
+
+    template<typename Container>
+    constexpr std::enable_if_t<std::is_same_v<typename Container::value_type, char>, bool>
+    operator!= (const sq_view_gen<Container>& lhs, std::string_view rhs)
+    {   return ! (lhs == rhs);
+    }
+
+    template<typename Container>
+    constexpr std::enable_if_t<std::is_same_v<typename Container::value_type, char>, bool>
+    operator!= (std::string_view lhs, const sq_view_gen<Container>& rhs)
+    {   return ! (lhs == rhs);
+    }
+
+    // Convenience overloads for C-string literals
+    template<typename Container>
+    constexpr std::enable_if_t<std::is_same_v<typename Container::value_type, char>, bool>
+    operator== (const sq_view_gen<Container>& lhs, const char* rhs)
+    {   return lhs == std::string_view(rhs);
+    }
+
+    template<typename Container>
+    constexpr std::enable_if_t<std::is_same_v<typename Container::value_type, char>, bool>
+    operator== (const char* lhs, const sq_view_gen<Container>& rhs)
+    {   return std::string_view(lhs) == rhs;
+    }
+
+    template<typename Container>
+    constexpr std::enable_if_t<std::is_same_v<typename Container::value_type, char>, bool>
+    operator!= (const sq_view_gen<Container>& lhs, const char* rhs)
+    {   return ! (lhs == rhs);
+    }
+
+    template<typename Container>
+    constexpr std::enable_if_t<std::is_same_v<typename Container::value_type, char>, bool>
+    operator!= (const char* lhs, const sq_view_gen<Container>& rhs)
+    {   return ! (lhs == rhs);
+    }
+
+// -- aliases ------------------------------------------------------------------
+    using sq_view = sq_view_gen<std::vector<char>>;
+
+}   // end gynx namespace
+
+#endif  // _GYNX_SQ_VIEW_HPP_
