@@ -21,7 +21,7 @@ kernelspec:
 #include <g3p/gnuplot>
 #include <gynx/sq.hpp>
 #include <gynx/sq_view.hpp>
-#include <gynx/io/faqz.hpp>
+#include <gynx/io/fastaqz.hpp>
 ```
 
 Making a biological sequence in Gynx is easy:
@@ -41,7 +41,7 @@ It's also easy to load from compressed/uncompressed fasta/fastq files. First let
 +++
 ```{code-cell} cpp
 gynx::sq plasmid;
-plasmid.load("GCF_000204255.1_ASM20425v1_genomic.fna.gz", "NC_017288.1", gynx::in::faqz());
+plasmid.load("GCF_000204255.1_ASM20425v1_genomic.fna.gz", "NC_017288.1");
 (7553 == std::size(plasmid))
 ```
 +++
