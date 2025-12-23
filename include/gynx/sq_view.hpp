@@ -25,19 +25,22 @@
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
+#include <ranges>
 #include <stdexcept>
 #include <string_view>
 #include <type_traits>
 #include <vector>
 
-#include <gynx/sq.hpp>
-
 namespace gynx {
+
+// forward declaration of sq_gen
+template<typename Container, typename Map>
+class sq_gen;
 
 /// @brief A non-owning view over a sequence, similar to std::basic_string_view.
 /// @tparam Container The container type used by the owning sq_gen.
 template<typename Container>
-class sq_view_gen
+class sq_view_gen : public std::ranges::view_interface<sq_view_gen<Container>>
 {
 public:
     using value_type = typename Container::value_type;
@@ -51,10 +54,7 @@ public:
     static constexpr size_type npos = static_cast<size_type>(-1);
 
 // -- constructors -------------------------------------------------------------
-    constexpr sq_view_gen() noexcept
-    :   _data(nullptr)
-    ,   _size(0)
-    {}
+    constexpr sq_view_gen() noexcept = default;
 
     constexpr sq_view_gen(const value_type* data, size_type count) noexcept
     :   _data(data)
@@ -97,7 +97,7 @@ public:
     constexpr size_type size() const noexcept
     {   return _size;
     }
-    constexpr bool empty() const noexcept
+    [[nodiscard]] constexpr bool empty() const noexcept
     {   return _size == 0;
     }
 
@@ -144,8 +144,8 @@ public:
     }
 
 private:
-    const_pointer _data;
-    size_type _size;
+    const_pointer _data = nullptr;
+    size_type _size = 0;
 };
 
 // -- comparison operators -----------------------------------------------------
@@ -221,5 +221,11 @@ private:
     using sq_view = sq_view_gen<std::vector<char>>;
 
 }   // end gynx namespace
+
+// Enable std::ranges::view concept for sq_view_gen
+namespace std::ranges {
+    template<typename Container>
+    inline constexpr bool enable_view<gynx::sq_view_gen<Container>> = true;
+}
 
 #endif  // _GYNX_SQ_VIEW_HPP_

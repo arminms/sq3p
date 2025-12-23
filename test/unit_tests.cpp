@@ -24,7 +24,7 @@
 #include <gynx/sq.hpp>
 #include <gynx/sq_view.hpp>
 #include <gynx/io/fastaqz.hpp>
-// #include <gynx/lut/phred33.hpp>
+#include <gynx/lut/phred33.hpp>
 
 TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
@@ -346,6 +346,36 @@ TEMPLATE_TEST_CASE( "gynx::sq_view", "[view]", std::vector<char>)
     {   gynx::sq_view v{s};
         CHECK(v == "ACGT");
     }
+
+// -- ranges concept support --------------------------------------------------
+
+    SECTION( "std::ranges::view concept" )
+    {   gynx::sq_view_gen<T> v{s};
+        // Verify that sq_view_gen satisfies the view concept
+        static_assert(std::ranges::view<gynx::sq_view_gen<T>>);
+        static_assert(std::ranges::range<gynx::sq_view_gen<T>>);
+        
+        // Test composability with range adaptors
+        auto transformed = v | std::views::transform
+        (   [](auto c)
+            {   return c == 'A' ? 'T' : c;
+            }
+        );
+        std::string r(transformed.begin(), transformed.end());
+        CHECK(r == "TCGT");
+    }
+
+    SECTION( "composable with multiple adaptors" )
+    {   gynx::sq_view_gen<T> v{s};
+        // Chain multiple views
+        auto result = v 
+            | std::views::reverse 
+            | std::views::transform([](auto c) { return std::tolower(c); })
+            | std::views::take(3);
+
+        std::string r(result.begin(), result.end());
+        CHECK(r == "tgc");
+    }
 }
 
 TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in][out]", std::vector<char>)
@@ -364,10 +394,10 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in][out]", std::vector<char>)
     bad_id.load(SAMPLE_GENOME, "bad_id");
     CHECK(bad_id.empty());
 
-    // REQUIRE_THAT
-    // (   gynx::lut::phred33[static_cast<uint8_t>('J')]
-    // ,   Catch::Matchers::WithinAbs(7.943282e-05, 0.000001)
-    // );
+    REQUIRE_THAT
+    (   gynx::lut::phred33[static_cast<uint8_t>('J')]
+    ,   Catch::Matchers::WithinAbs(7.943282e-05, 0.000001)
+    );
 
     SECTION( "load with index" )
     {   s.load(SAMPLE_GENOME, 1, gynx::in::fast_aqz<decltype(s)>());
