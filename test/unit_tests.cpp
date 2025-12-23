@@ -195,6 +195,10 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
         CHECK(org(0) == org);
         CHECK(org(4) == "ACGTGAC");
         CHECK_THROWS_AS(org(20) == "ACGTGAC", std::out_of_range);
+
+        // casting sq_view to sq_gen
+        gynx::sq_gen<T> sub = gynx::sq_gen<T>(org(4, 10));
+        CHECK(sub == "ACGTGAC");
     }
 
 // -- managing tagged data -----------------------------------------------------
