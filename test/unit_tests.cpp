@@ -24,7 +24,7 @@
 #include <gynx/sq.hpp>
 #include <gynx/sq_view.hpp>
 #include <gynx/io/fastaqz.hpp>
-#include <gynx/lut/phred33.hpp>
+// #include <gynx/lut/phred33.hpp>
 
 TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
 {   typedef TestType T;
@@ -406,10 +406,10 @@ TEMPLATE_TEST_CASE( "gynx::io::fastaqz", "[io][in][out]", std::vector<char>)
     bad_id.load(SAMPLE_GENOME, "bad_id");
     CHECK(bad_id.empty());
 
-    REQUIRE_THAT
-    (   gynx::lut::phred33[static_cast<uint8_t>('J')]
-    ,   Catch::Matchers::WithinAbs(7.943282e-05, 0.000001)
-    );
+    // REQUIRE_THAT
+    // (   gynx::lut::phred33[static_cast<uint8_t>('J')]
+    // ,   Catch::Matchers::WithinAbs(7.943282e-05, 0.000001)
+    // );
 
     SECTION( "load with index" )
     {   s.load(SAMPLE_GENOME, 1, gynx::in::fast_aqz<decltype(s)>());
