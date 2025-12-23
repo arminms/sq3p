@@ -64,6 +64,14 @@ TEMPLATE_TEST_CASE( "gynx::sq", "[class]", std::vector<char>)
         gynx::sq_gen<T> c4(4, 'C');
         CHECK(c4 == "CCCC");
     }
+    SECTION( "string_view constructor" )
+    {   gynx::sq_gen<T> c("ACGT");
+        CHECK(s == c);
+    }
+    SECTION( "sq_view constructor" )
+    {   gynx::sq_view_gen<T> sv(s);
+        CHECK(s == sv);
+    }
     SECTION( "iterator constructor" )
     {   std::string acgt{"ACGT"};
         gynx::sq_gen<T> c(std::begin(acgt), std::end(acgt));

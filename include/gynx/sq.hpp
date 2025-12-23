@@ -22,6 +22,7 @@
 #ifndef _GYNX_SQ_HPP_
 #define _GYNX_SQ_HPP_
 
+#include <concepts>
 #include <sstream>
 #include <algorithm>
 #include <initializer_list>
@@ -35,6 +36,7 @@
 #include <typeindex>
 #include <cstdint>
 
+#include <gynx/sq_view.hpp>
 #include <gynx/visitor.hpp>
 #include <gynx/io/fastaqz.hpp>
 
@@ -62,6 +64,8 @@ public:
     using reverse_iterator = typename Container::reverse_iterator;
     using const_reverse_iterator = typename Container::const_reverse_iterator;
 
+    static constexpr size_type npos = static_cast<size_type>(-1);
+
 // -- constructors -------------------------------------------------------------
     ///
     /// Default constructor. Constructs an empty sequence.
@@ -72,7 +76,7 @@ public:
     ///
     /// @brief Constructs a sequence from a string view.
     /// @param sq The string view representing the sequence.
-    sq_gen(std::string_view sq)
+    explicit sq_gen(std::string_view sq)
     :   _sq(std::begin(sq), std::end(sq))
     ,   _ptr_td()
     {}
@@ -86,11 +90,20 @@ public:
     ,   _ptr_td()
     {}
     ///
+    /// @brief Constructs a sequence from a sequence view.
+    /// @param sv The sequence view to construct the sequence from.
+    explicit sq_gen(sq_view_gen<Container> sv)
+    :   _sq(std::begin(sv), std::end(sv))
+    ,   _ptr_td()
+    {}
+    ///
+    template<typename InputIt>
+    requires std::input_iterator<InputIt> &&
+        std::is_same_v<typename std::iterator_traits<InputIt>::value_type, value_type>
     /// @brief Constructs a sequence from a pair of iterators.
     /// @tparam InputIt The type of the input iterators.
     /// @param first The beginning iterator of the sequence.
     /// @param last The ending iterator of the sequence.
-    template<typename InputIt>
     sq_gen(InputIt first, InputIt last)
     :   _sq(first, last)
     ,   _ptr_td()
@@ -238,15 +251,14 @@ public:
 // -- subseq operator ----------------------------------------------------------
     ///
     /// Returns a subsequence starting at position @a pos with length @a count.
-    /// If @a count is std::string::npos or exceeds the sequence length from
+    /// If @a count is gynx::sq::npos or exceeds the sequence length from
     /// @a pos, the subsequence extends to the end of the sequence.
-    sq_gen operator() (size_type pos, size_type count = std::string::npos) const
-    {   if (pos > _sq.size())
-            throw std::out_of_range("gynx::sq: pos > this->size()");
-        return sq_gen
-        (   _sq.begin() + pos
-        ,   (count > _sq.size() - pos) ? _sq.end() : _sq.begin() + pos + count
-        );
+    sq_view_gen<Container> operator()
+    (   size_type pos
+    ,   size_type count = npos
+    )   const
+    {   sq_view_gen<Container> sv(*this);
+        return sv.substr(pos, count);
     }
 
 // -- managing tagged data -----------------------------------------------------
