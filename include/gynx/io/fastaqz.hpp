@@ -51,7 +51,7 @@ struct fast_aqz
         kseq_t* seq = kseq_init(fp);
         size_t count = 0;
         int r{};
-        while (r = kseq_read(seq) >= 0)
+        while ((r = kseq_read(seq)) >= 0)
             if (ndx == count++)
                 break;
         Sequence s = (r > 0) ? Sequence(seq->seq.s) : Sequence();
@@ -87,7 +87,7 @@ struct fast_aqz
             );
         kseq_t* seq = kseq_init(fp);
         int r{};
-        while (r = kseq_read(seq) >= 0)
+        while ((r = kseq_read(seq)) >= 0)
         {   std::string_view name(seq->name.s);
             if (name == id)
                 break;
